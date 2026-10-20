@@ -46,7 +46,7 @@ description: "文章摘要"
 - 基本信息、导航、头像：`hugo.toml`。
 - 关于页：`content/page/about/index.md`。
 - 友链：`data/friends.yaml`。
-- 站点图标：`static/favicon.svg`。
+- 站点图标：`assets/img/site-icon.jpg`，构建时自动生成浏览器与手机书签所需的 PNG 尺寸；在 `hugo.toml` 的 `favicon` 中指定源图。
 - 初始两篇文章用于演示，可直接修改或删除。
 
 加密文章沿用主题的 `themes/flavor/scripts/encrypt.sh`；明文只放在已忽略的 `content/private/`。

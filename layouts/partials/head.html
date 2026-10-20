@@ -6,7 +6,17 @@
   {{ $path := . }}
   {{ $icon := partial "get-static-image.html" $path }}
   {{ if $icon }}
+    {{ if in (slice "jpeg" "png" "webp") $icon.MediaType.SubType }}
+      {{ range slice 16 32 48 }}
+        {{ $size := printf "%dx%d" . . }}
+        {{ $small := $icon.Resize (printf "%s png" $size) }}
+<link rel="icon" href="{{ $small.RelPermalink }}" type="image/png" sizes="{{ $size }}">
+      {{ end }}
+      {{ $touch := $icon.Resize "180x180 png" }}
+<link rel="apple-touch-icon" href="{{ $touch.RelPermalink }}" sizes="180x180">
+    {{ else }}
 <link rel="icon" href="{{ $icon.RelPermalink }}" type="{{ $icon.MediaType }}">
+    {{ end }}
   {{ else }}
 <link rel="icon" href="{{ $path | relURL }}">
   {{ end }}
