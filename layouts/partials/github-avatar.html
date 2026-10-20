@@ -1,0 +1,30 @@
+{{- $avatar := false -}}
+{{- with .Site.Params.author.avatar -}}
+  {{- with resources.Get . -}}
+    {{- $avatar = .Resize "264x264 webp q85" -}}
+  {{- end -}}
+{{- end -}}
+{{- with .Site.Params.author.githubAvatar -}}
+  {{/* Fetch during the build. Readers load the generated image from this site. */}}
+  {{- $options := dict "timeout" "10s" -}}
+  {{- with try (resources.GetRemote . $options) -}}
+    {{- with .Err -}}
+      {{- warnf "GitHub avatar unavailable; using the saved local avatar. %s" . -}}
+    {{- else with .Value -}}
+      {{- if eq .MediaType.MainType "image" -}}
+        {{- with try (.Resize "264x264 webp q85") -}}
+          {{- if .Err -}}
+            {{- warnf "GitHub avatar could not be processed; using the saved local avatar. %s" .Err -}}
+          {{- else -}}
+            {{- $avatar = .Value -}}
+          {{- end -}}
+        {{- end -}}
+      {{- else -}}
+        {{- warnf "GitHub avatar response was not an image; using the saved local avatar." -}}
+      {{- end -}}
+    {{- else -}}
+      {{- warnf "GitHub avatar not found; using the saved local avatar." -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $avatar -}}

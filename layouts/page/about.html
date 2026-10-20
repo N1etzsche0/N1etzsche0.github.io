@@ -1,8 +1,11 @@
 {{ define "main" }}
 <div class="container about-page">
   <aside class="about-profile" aria-label="作者介绍">
-    {{ with .Site.Params.avatar }}
-    <img class="about-profile__avatar" src="{{ . | relURL }}" alt="" width="88" height="88">
+    {{ $avatar := partialCached "github-avatar.html" . }}
+    {{ with $avatar }}
+    <img class="about-profile__avatar" src="{{ $avatar.RelPermalink }}" alt="疏狂的 GitHub 头像" width="88" height="88" fetchpriority="high" decoding="async">
+    {{ else with .Site.Params.avatar }}
+    <img class="about-profile__avatar" src="{{ . | relURL }}" alt="疏狂的头像" width="88" height="88">
     {{ end }}
     <div class="about-profile__identity">
       <h2>{{ .Site.Params.author.name | default .Site.Title }}</h2>

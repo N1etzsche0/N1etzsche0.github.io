@@ -41,6 +41,8 @@ disableHugoGeneratorInject = true
   [params.author]
     name = "疏狂"
     url = "about/"
+    avatar = "img/github-avatar.jpg"
+    githubAvatar = "https://avatars.githubusercontent.com/u/98199164?s=264"
 
   [params.welcome]
     enabled = false
@@ -116,6 +118,9 @@ disableHugoGeneratorInject = true
 
 [caches.images]
   dir = ":cacheDir/images"
+
+[caches.getresource]
+  maxAge = 0
 
 [sitemap]
   changeFreq = "weekly"
