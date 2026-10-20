@@ -53,9 +53,11 @@ description: "文章摘要"
 
 ## 主题调整
 
-站点的视觉与交互调整保存在项目根目录，更新 Flavor 子模块时可继续保留：`assets/css/site.css` 管理配色、间距与手机端布局；`assets/js/theme-toggle.js` 管理主题偏好和导航菜单；`layouts/index.html` 与 `layouts/page/about.html` 分别管理首页和关于页布局。关于页正文仍在 `content/page/about/index.md` 编辑，侧栏自动读取 `hugo.toml` 中的姓名、头像、简介与社交链接。
+站点沿用 Flavor 原有的浅色纸白、深色蓝黑和导航渐变，配色变量由主题子模块统一管理。视觉与交互调整保存在项目根目录：`assets/css/site.css` 管理间距、排版与手机端布局；`assets/js/theme-toggle.js` 管理主题偏好和导航菜单；`layouts/index.html` 与 `layouts/page/about.html` 分别管理首页和关于页布局。关于页正文仍在 `content/page/about/index.md` 编辑，侧栏自动读取 `hugo.toml` 中的姓名、头像、简介与社交链接。
 
 主题偏好保存在当前浏览器中；未手动选择时跟随系统。搜索支持 `Ctrl/⌘ + K` 打开、`Esc` 或关闭按钮退出；手机导航支持点菜单外区域或按 `Esc` 收起。
+
+文章页自动显示阅读进度、段落标题定位链接，以及带语言提示的代码复制工具栏，无需修改 Markdown。`assets/js/article.js`、`code-copy.js` 与 `toc.js` 分别管理这些功能；目录在手机和平板上以浮层打开，支持键盘操作、点击遮罩关闭及选中章节后返回正文，桌面端保留目录与正文并排阅读。
 
 ## GitHub Pages 发布
 

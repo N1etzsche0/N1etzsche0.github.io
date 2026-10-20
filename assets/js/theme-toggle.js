@@ -41,18 +41,6 @@
   });
   matchMedia('(min-width: 769px)').addEventListener('change', () => setMenu(false));
 
-  // Keep the theme's off-canvas directory out of the keyboard tab order.
-  const directory = document.getElementById('toc-aside');
-  if (directory) {
-    const syncDirectory = () => {
-      const hidden = directory.getAttribute('aria-hidden') === 'true';
-      if (hidden && directory.contains(document.activeElement)) document.getElementById('toc-btn')?.focus();
-      directory.inert = hidden;
-    };
-    syncDirectory();
-    new MutationObserver(syncDirectory).observe(directory, { attributes: true, attributeFilter: ['aria-hidden'] });
-  }
-
   const top = document.getElementById('to-top');
   if (top) {
     const update = () => {

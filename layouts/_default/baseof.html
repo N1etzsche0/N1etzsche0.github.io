@@ -7,6 +7,9 @@
   {{ if .IsHome }}{{ partial "welcome.html" . }}{{ end }}
   {{ partial "navbar.html" . }}
   <a class="skip-link" href="#main-content">跳到正文</a>
+  {{ if and .IsPage (eq .Section "post") }}
+  <div class="reading-progress" aria-hidden="true"><span id="reading-progress"></span></div>
+  {{ end }}
   <main class="site-content" id="main-content">
     {{- block "main" . }}{{ end -}}
   </main>
@@ -39,6 +42,7 @@
   {{ if and .IsHome .Site.Params.typewriter.enabled }}{{ partial "script.html" "js/typewriter.js" }}{{ end }}
   {{ if $hasCode }}{{ partial "script.html" "js/code-copy.js" }}{{ end }}
   {{ if $hasTOC }}{{ partial "script.html" "js/toc.js" }}{{ end }}
+  {{ if and .IsPage (eq .Section "post") }}{{ partial "script.html" "js/article.js" }}{{ end }}
   {{ if $hasImg }}{{ partial "script.html" "js/lightbox.js" }}{{ end }}
   {{ if $hasRef }}{{ partial "script.html" "js/references.js" }}{{ end }}
   {{ if $encrypted }}{{ partial "script.html" "js/encrypt.js" }}{{ end }}

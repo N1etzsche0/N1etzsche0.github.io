@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, mkdir } from 'node:fs/promises';
+import { access, mkdir, readFile } from 'node:fs/promises';
 import { chromium } from 'playwright-core';
 import { serve } from './preview.mjs';
 
@@ -8,6 +8,10 @@ let executablePath;
 for (const candidate of candidates) { try { await access(candidate); executablePath = candidate; break; } catch {} }
 if (!executablePath) throw new Error('Set CHROMIUM_PATH to an installed Chromium or Chrome executable.');
 const basePath = process.env.BLOG_BASE_PATH || '/';
+const paletteSource = await readFile('themes/flavor/assets/scss/_variables.scss', 'utf8');
+const palettes = Object.fromEntries([...paletteSource.matchAll(/html\[data-theme="(light|dark)"\]\s*\{([^}]+)\}/g)].map(([, theme, rules]) => [theme,
+  Object.fromEntries([...rules.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(([, key, value]) => [key, value.trim()]))
+]));
 const { server, url } = await serve({ directory: process.env.BLOG_OUTPUT_DIR || 'public', basePath, port: 0 });
 let browser;
 try {
@@ -20,6 +24,12 @@ try {
   page.on('request', request => requests.push(request.url()));
   page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
   await page.goto(url, { waitUntil: 'networkidle' });
+  const checkPalette = async theme => {
+    const actual = await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, getComputedStyle(document.documentElement).getPropertyValue(key).trim()])), Object.keys(palettes[theme]));
+    assert.deepEqual(actual, palettes[theme], `The original Flavor ${theme} palette must be preserved.`);
+    assert.ok(await page.locator('.navbar').evaluate(element => getComputedStyle(element).backgroundImage.includes('linear-gradient')), 'Original navigation gradient is missing.');
+  };
+  await checkPalette('light');
   assert.equal(await page.locator('.hero__title').textContent(), '疏狂');
   assert.ok(!requests.some(request => request.includes('/pagefind/')), 'Search index loaded before search was opened.');
   assert.ok(requests.every(request => new URL(request).origin === new URL(url).origin), 'Unexpected external runtime dependency.');
@@ -30,6 +40,7 @@ try {
   await page.screenshot({ path: `.artifacts/${label}-desktop.png`, fullPage: true });
   await page.click('#theme-toggle');
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+  await checkPalette('dark');
   await page.reload({ waitUntil: 'networkidle' });
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
   const secondTab = await page.context().newPage();
@@ -67,6 +78,47 @@ try {
   await page.click('#toc-close');
   assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), true);
   assert.equal(await page.locator('#toc-btn').evaluate(element => element === document.activeElement), true);
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(url).origin });
+  const copy = page.locator('.highlight__copy').first();
+  const expectedCode = await page.locator('.article-content pre code').first().textContent();
+  await copy.click();
+  await page.waitForFunction(() => document.querySelector('.highlight__copy').textContent.includes('已复制'));
+  assert.equal(await page.evaluate(() => navigator.clipboard.readText()), expectedCode, 'Copy must include only code, without toolbar or line numbers.');
+  await page.evaluate(() => { navigator.clipboard.writeText = async () => { throw new DOMException('Clipboard blocked', 'NotAllowedError'); }; });
+  await copy.click();
+  await page.waitForFunction(() => document.querySelector('.highlight__copy').textContent.includes('复制失败'));
+  assert.equal(await copy.isEnabled(), true, 'A clipboard denial must allow retrying.');
+  const anchor = page.locator('.heading-anchor').first();
+  await anchor.focus();
+  await anchor.click();
+  await page.waitForFunction(() => { const top = document.querySelector('.article-content h2').getBoundingClientRect().top; return top >= 70 && top <= 130; });
+  await page.evaluate(() => scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }));
+  await page.waitForFunction(() => getComputedStyle(document.getElementById('reading-progress')).transform === 'matrix(1, 0, 0, 1, 0, 0)');
+  await page.setViewportSize({ width: 820, height: 900 });
+  const articleWidth = await page.locator('.read').evaluate(element => element.getBoundingClientRect().width);
+  await page.click('#toc-btn');
+  assert.equal(await page.locator('#toc-aside').getAttribute('aria-modal'), 'true');
+  assert.equal(await page.locator('.read').evaluate(element => element.inert), true);
+  assert.equal(await page.locator('.read').evaluate(element => element.getBoundingClientRect().width), articleWidth, 'A tablet directory must preserve the reading width.');
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await page.locator('#toc-aside .toc a').last().evaluate(element => element === document.activeElement), true, 'Directory focus must stay inside the modal.');
+  await page.locator('#toc-aside .toc a').nth(1).click();
+  assert.equal(await page.locator('#toc-aside').getAttribute('aria-hidden'), 'true');
+  assert.equal(await page.locator('.read').evaluate(element => element.inert), false);
+  await page.waitForFunction(() => document.querySelector('.article-content h2:nth-of-type(2)') === document.activeElement);
+  await page.click('#toc-btn');
+  await page.locator('.toc-backdrop').click({ position: { x: 10, y: 100 } });
+  assert.equal(await page.locator('#toc-btn').getAttribute('aria-expanded'), 'false');
+  await page.click('#toc-btn');
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  assert.equal(await page.locator('.read').evaluate(element => element.inert), false);
+  assert.equal(await page.locator('#toc-aside').getAttribute('aria-modal'), null);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.keyboard.press('Control+k');
+  assert.equal(await page.locator('#toc-btn').getAttribute('aria-expanded'), 'false', 'Opening search must close the directory and restore its background.');
+  assert.equal(await page.locator('#search-input').evaluate(element => element === document.activeElement), true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.read').evaluate(element => element.inert), false);
   for (const route of ['archives/', 'tags/', 'links/', 'about/']) {
     assert.equal((await page.goto(new URL(route, url).href, { waitUntil: 'networkidle' })).status(), 200);
     assert.ok((await page.locator('h1').first().textContent()).trim());
@@ -106,7 +158,7 @@ try {
   assert.equal(await restricted.locator('#hamburger').getAttribute('aria-expanded'), 'true');
   assert.deepEqual(storageErrors, [], 'Blocked browser storage must not break theme or navigation.');
   await blocked.close();
-  console.log(`Browser checks passed at ${basePath}: lazy search, keyboard focus, theme across tabs, blocked storage, mobile menus, article code/TOC, all pages and 404.`);
+  console.log(`Browser checks passed at ${basePath}: original palettes, lazy search, keyboard focus, theme across tabs, blocked storage, mobile menus, clipboard success/denial, article links/progress, responsive directory, all pages and 404.`);
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));
