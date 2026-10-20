@@ -1,0 +1,14 @@
+node_modules/
+public/
+resources/_gen/
+.hugo_build.lock
+.cache/
+.tools/
+.artifacts/
+.wrangler/
+.env
+.env.*
+!.env.example
+content/private/
+*.log
+.DS_Store

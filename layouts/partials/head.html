@@ -1,0 +1,59 @@
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light dark">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} - {{ .Site.Title }}{{ end }}</title>
+{{ with .Site.Params.favicon }}
+  {{ $path := . }}
+  {{ $icon := partial "get-static-image.html" $path }}
+  {{ if $icon }}
+<link rel="icon" href="{{ $icon.RelPermalink }}" type="{{ $icon.MediaType }}">
+  {{ else }}
+<link rel="icon" href="{{ $path | relURL }}">
+  {{ end }}
+{{ end }}
+<script>
+(function(){
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  var ov = sessionStorage.getItem('flavor-theme-override');
+  if (ov === 'light' || ov === 'dark') {
+    document.documentElement.setAttribute('data-theme', ov);
+    return;
+  }
+  document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
+})();
+</script>
+{{- with .Site.Params.font -}}
+  {{- $css := .css | default "" -}}
+  {{- $abs := or (hasPrefix $css "https://") (hasPrefix $css "http://") -}}
+  {{- if $abs -}}
+    {{- $u := urls.Parse $css -}}
+<link rel="preconnect" href="{{ $u.Scheme }}://{{ $u.Host }}" crossorigin>
+  {{- end -}}
+  {{- with .preload -}}
+<link rel="preload" as="font" type="font/woff2" href="{{ . | relURL }}" crossorigin>
+  {{- end -}}
+  {{- with $css -}}
+    {{- $href := . -}}
+    {{- if not $abs }}{{ $href = . | relURL }}{{ end -}}
+<link rel="preload" as="style" href="{{ $href }}"{{ if $abs }} crossorigin{{ end }} onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+<link rel="stylesheet" href="{{ $href }}"{{ if $abs }} crossorigin{{ end }}>
+</noscript>
+  {{- end -}}
+{{- end -}}
+<link rel="preload" as="font" type="font/woff2" href="{{ "fonts/Chillax-Variable.woff2" | relURL }}" crossorigin>
+{{- if eq .Layout "links" }}
+<link rel="preload" as="font" type="font/woff2" href="{{ "fonts/Caveat-latin.woff2" | relURL }}" crossorigin>
+{{- end }}
+{{- $compiled := resources.Get "scss/main.scss" | toCSS -}}
+{{- $css := replace $compiled.Content "url(\"/fonts/" "url(\"../fonts/" -}}
+{{- with resources.Get "css/site.css" }}{{ $css = printf "%s\n%s" $css .Content }}{{ end -}}
+{{- $style := resources.FromString "css/main.css" $css | minify | fingerprint -}}
+<link rel="stylesheet" href="{{ $style.RelPermalink }}" integrity="{{ $style.Data.Integrity }}" crossorigin="anonymous">
+{{- with (urls.Parse .Site.BaseURL).Host }}
+<style>
+.article-content a[href*="{{ . }}"]::after{content:none!important;padding:0!important;background:none!important;-webkit-mask-image:none!important;mask-image:none!important}
+</style>
+{{- end }}
+{{- partial "meta.html" . -}}
+{{- partial "schema.html" . -}}

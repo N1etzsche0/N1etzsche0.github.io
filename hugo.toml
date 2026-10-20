@@ -1,0 +1,121 @@
+# Production builds use HUGO_BASEURL, SITE_URL, or Cloudflare's CF_PAGES_URL.
+baseURL = "https://n1etzsche0.github.io/"
+title = "N1etzsche0"
+theme = "flavor"
+defaultContentLanguage = "zh"
+locale = "zh-cn"
+timeZone = "Asia/Shanghai"
+hasCJKLanguage = true
+enableRobotsTXT = true
+summaryLength = 100
+disableHugoGeneratorInject = true
+
+[pagination]
+  pagerSize = 10
+
+[permalinks]
+  post = "/p/:slug/"
+  page = "/:slug/"
+
+[outputs]
+  home = ["HTML", "RSS"]
+  page = ["HTML"]
+  section = ["HTML", "RSS"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+
+[params]
+  description = "N1etzsche0 的个人博客，记录技术、阅读与日常思考。"
+  mainSections = ["post"]
+  avatar = "img/avatar.svg"
+  favicon = "favicon.svg"
+  defaultSocialImage = "img/avatar.svg"
+  ogLocale = "zh_CN"
+  status = "技术、阅读，以及值得记录的事。"
+  staleDays = 180
+
+  [params.author]
+    name = "N1etzsche0"
+    url = "about/"
+
+  [params.welcome]
+    enabled = false
+
+  [params.typewriter]
+    enabled = false
+    slogans = ["保持好奇，持续记录。"]
+
+  [params.footer]
+    since = 2026
+
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "首页"
+    url = "/"
+    weight = 10
+    [menu.main.params]
+      icon = "home"
+  [[menu.main]]
+    identifier = "archives"
+    name = "归档"
+    url = "/archives/"
+    weight = 20
+    [menu.main.params]
+      icon = "archives"
+  [[menu.main]]
+    identifier = "tags"
+    name = "标签"
+    url = "/tags/"
+    weight = 30
+  [[menu.main]]
+    identifier = "links"
+    name = "友链"
+    url = "/links/"
+    weight = 40
+    [menu.main.params]
+      icon = "link"
+  [[menu.main]]
+    identifier = "about"
+    name = "关于"
+    url = "/about/"
+    weight = 50
+    [menu.main.params]
+      icon = "user"
+
+  [[menu.social]]
+    name = "GitHub"
+    url = "https://github.com/N1etzsche0"
+    [menu.social.params]
+      icon = "github"
+  [[menu.social]]
+    name = "RSS"
+    url = "/index.xml"
+    [menu.social.params]
+      icon = "rss"
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = false
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 4
+  [markup.highlight]
+    noClasses = false
+    codeFences = true
+    tabWidth = 4
+
+[imaging]
+  quality = 80
+  resampleFilter = "CatmullRom"
+  hint = "picture"
+
+[caches.images]
+  dir = ":cacheDir/images"
+
+[sitemap]
+  changeFreq = "weekly"

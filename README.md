@@ -1,0 +1,104 @@
+# N1etzsche0 的博客
+
+使用自己的 [Flavor 主题](https://github.com/N1etzsche0/flavor)与 Hugo Extended 构建，默认发布到 **GitHub Pages**。保留 Flavor 的浅色 / 蓝黑深色、文章目录、代码复制、友链和 Pagefind 本地全文搜索。
+
+## 本地运行
+
+需要 Node.js 22+、Git，以及 `tar`。Linux x64 / arm64 和 Windows x64 首次运行会自动下载 `.hugo-version` 指定的 Hugo Extended 到项目的 `.tools/`，并校验官方 SHA-256；不修改系统安装。其他平台先从 [Hugo 官方发行页](https://github.com/gohugoio/hugo/releases/tag/v0.163.1)安装同版本 Extended。
+
+```bash
+git clone --recurse-submodules https://github.com/N1etzsche0/N1etzsche0.github.io.git
+cd N1etzsche0.github.io
+npm ci
+npm run dev
+```
+
+打开 `http://localhost:1313/`。如果克隆时没有拉取主题，先执行 `git submodule update --init --recursive`。
+
+开发预览包含草稿。完整搜索需要构建后预览：
+
+```bash
+npm run build
+npm run check
+npm run preview
+```
+
+`npm run test:browser` 使用本机已安装的 Chromium / Chrome 验证搜索、主题切换、移动菜单、目录和页面链接。可用 `CHROMIUM_PATH` 指定浏览器路径，截图保存在 `.artifacts/`。
+
+## 写文章
+
+在 `content/post/文章名/index.md` 写 Markdown，图片放在同一目录。示例：
+
+```yaml
+---
+title: "新文章"
+slug: "new-post"
+date: 2026-10-20T10:00:00+08:00
+draft: true
+tags: ["笔记"]
+categories: ["技术笔记"]
+description: "文章摘要"
+---
+```
+
+准备发布时改为 `draft: false`，同时确保日期不是未来时间。`sticky: true` 可以置顶。
+
+- 基本信息、导航、头像：`hugo.toml`。
+- 关于页：`content/page/about/index.md`。
+- 友链：`data/friends.yaml`。
+- 站点图标：`static/favicon.svg`。
+- 初始两篇文章用于演示，可直接修改或删除。
+
+加密文章沿用主题的 `themes/flavor/scripts/encrypt.sh`；明文只放在已忽略的 `content/private/`。
+
+## GitHub Pages 发布
+
+仓库默认使用 `N1etzsche0.github.io`，访问地址为 `https://n1etzsche0.github.io/`。GitHub 免费方案下使用公开仓库即可，不需要购买服务器。
+
+在仓库 **Settings → Pages → Source** 选择 **GitHub Actions**。之后推送到 `main` 会自动构建、校验并发布；Pull Request 只构建检查。
+
+```bash
+git add .
+git commit -m "Update blog"
+git push
+```
+
+工作流读取 Pages 返回的实际 URL，支持自定义域名和 `/blog/` 等项目路径。若使用 HTTPS 的 GitHub OAuth 登录，推送 `.github/workflows/` 需要凭据具有 `workflow` scope；可使用 `gh auth refresh -h github.com -s workflow` 完成授权。
+
+使用自定义域名时，在 GitHub Pages 设置里添加域名并完成 DNS 配置、启用 HTTPS；同时更新 `hugo.toml` 的 `baseURL`，或由构建环境设置 `HUGO_BASEURL`。
+
+## 加载优化
+
+参考 baozongwi.xyz 的实际资源组织方式，本站采用：
+
+- 完整静态 HTML，无数据库和运行时框架。
+- 系统中文字体；导航字体随站点托管，不依赖第三方字体 CDN。
+- CSS / JS 压缩并生成内容哈希文件名；文章目录、代码复制、图片灯箱只在对应页面加载。
+- Pagefind 搜索索引在打开搜索框时加载，搜索内容保留在浏览器本地。
+- 默认关闭欢迎遮罩和打字动画，首屏直接呈现正文。
+- 文章目录中的 PNG / JPEG 等光栅图片由主题在构建时转 WebP；大图提供响应式尺寸。不要将正文图片放在外部图床来依赖运行时跨域请求。
+- 生产构建检查所有站内链接与资源，并检查首页 / 样式的 gzip 体积预算。
+
+GitHub Pages 自行控制 HTTP 缓存头，构建产物中的 `_headers` **只对 Cloudflare Pages 生效**。不能通过该文件改变 GitHub Pages 的缓存策略。
+
+大陆访问速度取决于运营商、域名与跨境线路，本地构建或海外测速不能证明大陆加载速度。
+
+### 可选：接入 Cloudflare
+
+已有自定义域名时，可以先按 GitHub 与 Cloudflare 的文档接入 CDN，再从实际读者所在的电信 / 联通 / 移动网络比较效果。免费 Cloudflare 不包含大陆节点；购买普通 Pro 套餐也不等于接入其中国网络。
+
+若以后切换为 Cloudflare Pages，导入同一 GitHub 仓库，生产分支 `main`，构建命令 `npm run build`，输出目录 `public`，Node 版本 `22`。设置 `HUGO_BASEURL=https://你的正式域名/`；未设置时构建脚本使用 Cloudflare 提供的 `CF_PAGES_URL`。无需 Functions / Workers，也无需付费套餐。
+
+可选 `_headers` 对带哈希文件名的 CSS / JS 使用一年缓存，固定文件名的字体只缓存一天，搜索索引要求重新验证，避免更新后继续搜索旧内容。HTML 使用平台默认缓存策略。
+
+### 更新主题
+
+```bash
+git submodule update --remote --merge themes/flavor
+npm run build
+npm run check
+```
+
+主题保持原样，站点定制集中在根目录的 `layouts/` 和 `assets/`。升级时需要核对同名模板的改动，再提交更新后的主题版本指针。
+
+参考文档：[Hugo → GitHub Pages](https://gohugo.io/host-and-deploy/deploy-to-github-pages/)、[GitHub Pages 自定义域名](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site)、[Cloudflare Pages 缓存头](https://developers.cloudflare.com/pages/configuration/headers/)、[Cloudflare 中国网络](https://developers.cloudflare.com/china-network/)。

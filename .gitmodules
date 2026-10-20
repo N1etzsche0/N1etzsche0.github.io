@@ -1,0 +1,4 @@
+[submodule "themes/flavor"]
+	path = themes/flavor
+	url = https://github.com/N1etzsche0/flavor.git
+	branch = main

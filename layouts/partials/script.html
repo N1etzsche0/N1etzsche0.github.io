@@ -1,0 +1,4 @@
+{{- with resources.Get . -}}
+  {{- $js := . | minify | fingerprint -}}
+<script defer src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous"></script>
+{{- end -}}

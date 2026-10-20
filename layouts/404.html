@@ -1,0 +1,11 @@
+{{ define "main" }}
+<div class="container">
+  <article class="not-found">
+    <h1>404 · 这一页走丢了</h1>
+    <p>链接可能已经改变，也可能这篇文章还没写完。</p>
+    <a href="{{ .Site.Home.RelPermalink }}">返回首页</a>
+    <span aria-hidden="true"> · </span>
+    <a href="{{ "archives/" | relURL }}">翻翻归档</a>
+  </article>
+</div>
+{{ end }}
