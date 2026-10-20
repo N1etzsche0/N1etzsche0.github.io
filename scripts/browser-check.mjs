@@ -19,7 +19,7 @@ try {
   page.on('request', request => requests.push(request.url()));
   page.on('response', response => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
   await page.goto(url, { waitUntil: 'networkidle' });
-  assert.equal(await page.locator('.hero__title').textContent(), 'N1etzsche0');
+  assert.equal(await page.locator('.hero__title').textContent(), '疏狂');
   assert.ok(!requests.some(request => request.includes('/pagefind/')), 'Search index loaded before search was opened.');
   assert.ok(requests.every(request => new URL(request).origin === new URL(url).origin), 'Unexpected external runtime dependency.');
   await page.evaluate(() => document.fonts.ready);

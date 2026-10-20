@@ -1,6 +1,6 @@
 # Production builds use HUGO_BASEURL, SITE_URL, or Cloudflare's CF_PAGES_URL.
 baseURL = "https://n1etzsche0.github.io/"
-title = "N1etzsche0"
+title = "疏狂"
 theme = "flavor"
 defaultContentLanguage = "zh"
 locale = "zh-cn"
@@ -29,7 +29,7 @@ disableHugoGeneratorInject = true
   tag = "tags"
 
 [params]
-  description = "N1etzsche0 的个人博客，记录技术、阅读与日常思考。"
+  description = "疏狂的个人博客，记录技术、阅读与日常思考。"
   mainSections = ["post"]
   avatar = "img/avatar.svg"
   favicon = "favicon.svg"
@@ -39,7 +39,7 @@ disableHugoGeneratorInject = true
   staleDays = 180
 
   [params.author]
-    name = "N1etzsche0"
+    name = "疏狂"
     url = "about/"
 
   [params.welcome]

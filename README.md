@@ -1,4 +1,4 @@
-# N1etzsche0 的博客
+# 疏狂的博客
 
 使用自己的 [Flavor 主题](https://github.com/N1etzsche0/flavor)与 Hugo Extended 构建，默认发布到 **GitHub Pages**。保留 Flavor 的浅色 / 蓝黑深色、文章目录、代码复制、友链和 Pagefind 本地全文搜索。
 
