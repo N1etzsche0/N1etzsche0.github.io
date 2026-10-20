@@ -29,7 +29,9 @@
 
   function open() {
     previousFocus = document.activeElement;
+    overlay.inert = false;
     overlay.classList.add('is-visible');
+    document.body.classList.add('search-open');
     overlay.setAttribute('aria-hidden', 'false');
     button.setAttribute('aria-expanded', 'true');
     input.focus();
@@ -40,14 +42,17 @@
   function close() {
     sequence++;
     overlay.classList.remove('is-visible');
-    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('search-open');
     button.setAttribute('aria-expanded', 'false');
     input.value = '';
     results.innerHTML = template('empty');
     previousFocus?.focus();
+    overlay.inert = true;
+    overlay.setAttribute('aria-hidden', 'true');
   }
 
   button.addEventListener('click', open);
+  document.getElementById('search-close')?.addEventListener('click', close);
   overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
   document.addEventListener('keydown', event => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -57,7 +62,7 @@
     if (!visible()) return;
     if (event.key === 'Escape') close();
     if (event.key === 'Tab') {
-      const controls = [input, ...results.querySelectorAll('a')];
+      const controls = [...overlay.querySelectorAll('input, button, a')];
       const first = controls[0];
       const last = controls.at(-1);
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }

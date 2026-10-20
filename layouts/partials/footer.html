@@ -8,13 +8,14 @@
     <div class="site-footer__social">
       {{ range site.Menus.social }}
       {{ $ext := or (hasPrefix .URL "https://") (hasPrefix .URL "http://") }}
-      <a href="{{ .URL | relURL }}" title="{{ .Name }}"{{ if $ext }} target="_blank" rel="noopener"{{ end }}>
+      <a href="{{ .URL | relURL }}" title="{{ .Name }}" aria-label="{{ .Name }}"{{ if $ext }} target="_blank" rel="noopener"{{ end }}>
         {{ with .Params.icon }}{{ partial "icon.html" . }}{{ end }}
       </a>
       {{ end }}
     </div>
     <div class="site-footer__copy">
-      &copy; {{ with site.Params.footer.since }}{{ . }} - {{ end }}{{ now.Format "2006" }} {{ site.Title }}
+      {{- $year := now.Format "2006" -}}
+      &copy; {{ with site.Params.footer.since }}{{ if ne (printf "%v" .) $year }}{{ . }}–{{ end }}{{ end }}{{ $year }} {{ site.Title }}
     </div>
     <div class="site-footer__stats">
       <span>{{ T "post-count" (len $pages) }}</span>

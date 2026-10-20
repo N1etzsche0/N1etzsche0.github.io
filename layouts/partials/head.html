@@ -14,7 +14,8 @@
 <script>
 (function(){
   var mq = window.matchMedia('(prefers-color-scheme: dark)');
-  var ov = sessionStorage.getItem('flavor-theme-override');
+  var ov;
+  try { ov = localStorage.getItem('flavor-theme-override') || sessionStorage.getItem('flavor-theme-override'); } catch (_) {}
   if (ov === 'light' || ov === 'dark') {
     document.documentElement.setAttribute('data-theme', ov);
     return;

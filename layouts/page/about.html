@@ -1,0 +1,28 @@
+{{ define "main" }}
+<div class="container about-page">
+  <aside class="about-profile" aria-label="作者介绍">
+    {{ with .Site.Params.avatar }}
+    <img class="about-profile__avatar" src="{{ . | relURL }}" alt="" width="88" height="88">
+    {{ end }}
+    <div class="about-profile__identity">
+      <h2>{{ .Site.Params.author.name | default .Site.Title }}</h2>
+      <p>{{ .Site.Params.status }}</p>
+    </div>
+    <div class="about-profile__links">
+      {{ range .Site.Menus.social }}
+      <a href="{{ .URL | relURL }}"{{ if or (hasPrefix .URL "https://") (hasPrefix .URL "http://") }} target="_blank" rel="noopener"{{ end }}>
+        {{ with .Params.icon }}{{ partial "icon.html" . }}{{ end }}<span>{{ .Name }}</span>
+      </a>
+      {{ end }}
+    </div>
+  </aside>
+  <article class="about-page__content">
+    <header class="about-page__header">
+      <p class="section-label">文字之外</p>
+      <h1>{{ .Title }}</h1>
+    </header>
+    <div class="article-content">{{ .Content }}</div>
+    <a class="text-link about-page__more" href="{{ "archives/" | relURL }}">看看我的记录 <span aria-hidden="true">↗</span></a>
+  </article>
+</div>
+{{ end }}

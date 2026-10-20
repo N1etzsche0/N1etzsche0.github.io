@@ -51,6 +51,12 @@ description: "文章摘要"
 
 加密文章沿用主题的 `themes/flavor/scripts/encrypt.sh`；明文只放在已忽略的 `content/private/`。
 
+## 主题调整
+
+站点的视觉与交互调整保存在项目根目录，更新 Flavor 子模块时可继续保留：`assets/css/site.css` 管理配色、间距与手机端布局；`assets/js/theme-toggle.js` 管理主题偏好和导航菜单；`layouts/index.html` 与 `layouts/page/about.html` 分别管理首页和关于页布局。关于页正文仍在 `content/page/about/index.md` 编辑，侧栏自动读取 `hugo.toml` 中的姓名、头像、简介与社交链接。
+
+主题偏好保存在当前浏览器中；未手动选择时跟随系统。搜索支持 `Ctrl/⌘ + K` 打开、`Esc` 或关闭按钮退出；手机导航支持点菜单外区域或按 `Esc` 收起。
+
 ## GitHub Pages 发布
 
 博客正式地址为 <https://shukuang.fyi/>，源码与发布仓库仍为 `N1etzsche0.github.io`。GitHub 免费方案下使用公开仓库即可，不需要购买服务器。

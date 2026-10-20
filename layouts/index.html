@@ -1,0 +1,11 @@
+{{ define "main" }}
+<div class="container home-page">
+  {{ partial "hero.html" . }}
+  {{ $pages := where .Site.RegularPages "Type" "in" .Site.Params.mainSections }}
+  <div class="section-heading">
+    <h2 class="section-label">最近的记录</h2>
+    <a class="text-link" href="{{ "archives/" | relURL }}">全部文章 <span aria-hidden="true">↗</span></a>
+  </div>
+  {{ partial "post-list.html" (dict "page" . "pages" $pages "showDesc" true) }}
+</div>
+{{ end }}

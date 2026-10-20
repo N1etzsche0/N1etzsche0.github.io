@@ -25,7 +25,7 @@
       {{ with .Site.Menus.social }}
       <div class="hero__social">
         {{ range . }}
-        <a href="{{ .URL | relURL }}" title="{{ .Name }}"{{ if or (hasPrefix .URL "https://") (hasPrefix .URL "http://") }} target="_blank" rel="noopener"{{ end }}>
+        <a href="{{ .URL | relURL }}" title="{{ .Name }}" aria-label="{{ .Name }}"{{ if or (hasPrefix .URL "https://") (hasPrefix .URL "http://") }} target="_blank" rel="noopener"{{ end }}>
           {{ with .Params.icon }}{{ partial "icon.html" . }}{{ end }}
         </a>
         {{ end }}

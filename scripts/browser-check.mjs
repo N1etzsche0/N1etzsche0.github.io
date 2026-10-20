@@ -12,7 +12,8 @@ const { server, url } = await serve({ directory: process.env.BLOG_OUTPUT_DIR || 
 let browser;
 try {
   browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, colorScheme: 'light' });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: 'light' });
+  const page = await context.newPage();
   const errors = [];
   const requests = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -31,6 +32,10 @@ try {
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
   await page.reload({ waitUntil: 'networkidle' });
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+  const secondTab = await page.context().newPage();
+  await secondTab.goto(url, { waitUntil: 'networkidle' });
+  assert.equal(await secondTab.locator('html').getAttribute('data-theme'), 'dark', 'Theme choice should persist in a new tab.');
+  await secondTab.close();
   await page.screenshot({ path: `.artifacts/${label}-dark.png`, fullPage: true });
   await page.click('#search-btn');
   await page.fill('#search-input', 'Markdown');
@@ -44,12 +49,24 @@ try {
   assert.equal(await page.locator('.search-hit').count(), 0);
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#search-overlay').getAttribute('aria-hidden'), 'true');
+  assert.equal(await page.locator('#search-overlay').evaluate(element => element.inert), true);
+  assert.equal(await page.locator('#search-btn').evaluate(element => element === document.activeElement), true);
+  await page.keyboard.press('Control+k');
+  assert.equal(await page.locator('#search-input').evaluate(element => element === document.activeElement), true);
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await page.locator('#search-close').evaluate(element => element === document.activeElement), true, 'Search focus must stay in the dialog.');
+  await page.click('#search-close');
+  assert.equal(await page.locator('#search-overlay').getAttribute('aria-hidden'), 'true');
   await page.goto(new URL('p/writing-with-hugo/', url).href, { waitUntil: 'networkidle' });
   assert.ok(await page.locator('.article-content pre').count());
   assert.ok(await page.locator('.highlight__copy').count(), 'Code copy buttons are missing.');
+  assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), true, 'Hidden directory links must not receive keyboard focus.');
   await page.click('#toc-btn');
   assert.equal(await page.locator('#toc-btn').getAttribute('aria-expanded'), 'true');
+  assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), false);
   await page.click('#toc-close');
+  assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), true);
+  assert.equal(await page.locator('#toc-btn').evaluate(element => element === document.activeElement), true);
   for (const route of ['archives/', 'tags/', 'links/', 'about/']) {
     assert.equal((await page.goto(new URL(route, url).href, { waitUntil: 'networkidle' })).status(), 200);
     assert.ok((await page.locator('h1').first().textContent()).trim());
@@ -58,6 +75,14 @@ try {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.click('#hamburger');
   assert.ok((await page.locator('#nav-links').getAttribute('class')).includes('is-open'));
+  assert.equal(await page.locator('#hamburger').getAttribute('aria-expanded'), 'true');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#hamburger').getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.locator('#hamburger').evaluate(element => element === document.activeElement), true);
+  await page.click('#hamburger');
+  await page.locator('.site-footer__copy').click();
+  assert.equal(await page.locator('#hamburger').getAttribute('aria-expanded'), 'false', 'Outside click should close the mobile menu.');
+  await page.click('#hamburger');
   await page.locator('#nav-links a', { hasText: '归档' }).click();
   await page.waitForURL(`**${basePath}archives/`);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Mobile layout overflows.');
@@ -67,7 +92,21 @@ try {
   const response = await page.goto(new URL('missing-page/', url).href);
   assert.equal(response.status(), 404);
   assert.ok((await page.locator('h1').textContent()).includes('404'));
-  console.log(`Browser checks passed at ${basePath}: lazy full-text search, theme persistence, menus, article code/TOC, all pages, mobile layout and 404.`);
+  const blocked = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
+  await blocked.addInitScript(() => {
+    for (const name of ['localStorage', 'sessionStorage']) Object.defineProperty(window, name, { get() { throw new DOMException('Storage blocked', 'SecurityError'); } });
+  });
+  const restricted = await blocked.newPage();
+  const storageErrors = [];
+  restricted.on('pageerror', error => storageErrors.push(error.message));
+  await restricted.goto(url, { waitUntil: 'networkidle' });
+  await restricted.click('#theme-toggle');
+  assert.equal(await restricted.locator('html').getAttribute('data-theme'), 'dark');
+  await restricted.click('#hamburger');
+  assert.equal(await restricted.locator('#hamburger').getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(storageErrors, [], 'Blocked browser storage must not break theme or navigation.');
+  await blocked.close();
+  console.log(`Browser checks passed at ${basePath}: lazy search, keyboard focus, theme across tabs, blocked storage, mobile menus, article code/TOC, all pages and 404.`);
 } finally {
   await browser?.close();
   await new Promise(resolve => server.close(resolve));
