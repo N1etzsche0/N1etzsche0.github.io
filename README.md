@@ -53,7 +53,7 @@ description: "文章摘要"
 
 ## GitHub Pages 发布
 
-仓库默认使用 `N1etzsche0.github.io`，访问地址为 `https://n1etzsche0.github.io/`。GitHub 免费方案下使用公开仓库即可，不需要购买服务器。
+博客正式地址为 <https://shukuang.fyi/>，源码与发布仓库仍为 `N1etzsche0.github.io`。GitHub 免费方案下使用公开仓库即可，不需要购买服务器。
 
 在仓库 **Settings → Pages → Source** 选择 **GitHub Actions**。之后推送到 `main` 会自动构建、校验并发布；Pull Request 只构建检查。
 
@@ -65,7 +65,7 @@ git push
 
 工作流读取 Pages 返回的实际 URL，支持自定义域名和 `/blog/` 等项目路径。若使用 HTTPS 的 GitHub OAuth 登录，推送 `.github/workflows/` 需要凭据具有 `workflow` scope；可使用 `gh auth refresh -h github.com -s workflow` 完成授权。
 
-使用自定义域名时，在 GitHub Pages 设置里添加域名并完成 DNS 配置、启用 HTTPS；同时更新 `hugo.toml` 的 `baseURL`，或由构建环境设置 `HUGO_BASEURL`。
+自定义域名已在 GitHub Pages 设置中设为 `shukuang.fyi`，`hugo.toml` 的 `baseURL` 使用同一域名。GitHub Actions 发布依赖仓库的 Pages 设置，不读取 `CNAME` 文件。以后更换域名时需要同时更新 Pages 设置、`hugo.toml` 和工作流中的备用地址；构建环境也可以通过 `HUGO_BASEURL` 覆盖站点地址。
 
 ## 加载优化
 
@@ -83,9 +83,11 @@ GitHub Pages 自行控制 HTTP 缓存头，构建产物中的 `_headers` **只�
 
 大陆访问速度取决于运营商、域名与跨境线路，本地构建或海外测速不能证明大陆加载速度。
 
-### 可选：接入 Cloudflare
+### Cloudflare DNS 与 CDN
 
-已有自定义域名时，可以先按 GitHub 与 Cloudflare 的文档接入 CDN，再从实际读者所在的电信 / 联通 / 移动网络比较效果。免费 Cloudflare 不包含大陆节点；购买普通 Pro 套餐也不等于接入其中国网络。
+域名 `shukuang.fyi` 使用 Cloudflare 免费方案。根域名配置 GitHub Pages 官方的 4 条 A 和 4 条 AAAA 记录，`www` 的 CNAME 指向 `n1etzsche0.github.io`。SSL/TLS 使用 **Full (strict)**。
+
+首次签发 GitHub Pages HTTPS 证书时先使用 DNS-only；源站证书就绪后再测试代理。代理开启后，应从实际读者所在的电信 / 联通 / 移动网络比较效果。免费 Cloudflare 不包含大陆节点；购买普通 Pro 套餐也不等于接入其中国网络。若 GitHub 证书续签出现问题，临时关闭代理，核对域名的 DNS 与证书状态后恢复。
 
 若以后切换为 Cloudflare Pages，导入同一 GitHub 仓库，生产分支 `main`，构建命令 `npm run build`，输出目录 `public`，Node 版本 `22`。设置 `HUGO_BASEURL=https://你的正式域名/`；未设置时构建脚本使用 Cloudflare 提供的 `CF_PAGES_URL`。无需 Functions / Workers，也无需付费套餐。
 

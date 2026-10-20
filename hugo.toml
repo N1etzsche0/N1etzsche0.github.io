@@ -1,5 +1,5 @@
 # Production builds use HUGO_BASEURL, SITE_URL, or Cloudflare's CF_PAGES_URL.
-baseURL = "https://n1etzsche0.github.io/"
+baseURL = "https://shukuang.fyi/"
 title = "疏狂"
 theme = "flavor"
 defaultContentLanguage = "zh"

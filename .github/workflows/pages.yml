@@ -38,8 +38,9 @@ jobs:
         uses: actions/configure-pages@v6
       - name: Build pages and full-text search
         env:
-          HUGO_BASEURL: ${{ steps.pages.outputs.base_url || 'https://n1etzsche0.github.io' }}
-        run: npm run build
+          HUGO_BASEURL: ${{ steps.pages.outputs.base_url || 'https://shukuang.fyi' }}
+        # Pages can report http:// while a new domain's certificate is pending.
+        run: HUGO_BASEURL="${HUGO_BASEURL/#http:/https:}" npm run build
       - name: Check internal links and performance budgets
         run: npm run check
       - name: Upload static site
