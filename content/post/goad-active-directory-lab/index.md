@@ -1,7 +1,7 @@
 ---
 title: "GOAD 域渗透靶场搭建与实战记录"
 slug: "goad-active-directory-lab"
-date: 2026-11-06T15:15:00+08:00
+date: 2023-08-21T02:13:13+08:00
 draft: false
 tags: ["GOAD", "Active Directory", "Kerberos", "内网安全"]
 categories: ["安全研究"]
