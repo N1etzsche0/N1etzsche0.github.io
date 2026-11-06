@@ -1,7 +1,7 @@
 ---
 title: "第九届 XCTF Final kingding && kinding-revenge 题解"
 slug: "xctf-final-2025-kingding-kinding-revenge"
-date: 2026-11-06T14:29:37+08:00
+date: 2025-10-28T00:00:00+08:00
 draft: false
 tags: ["XCTF", "Web", "PHP"]
 categories: ["CTF"]

@@ -4,7 +4,8 @@
 <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} - {{ .Site.Title }}{{ end }}</title>
 {{ with .Site.Params.favicon }}
   {{ $path := . }}
-  {{ $icon := partial "get-static-image.html" $path }}
+  {{ $icon := partialCached "github-avatar.html" $ }}
+  {{ if not $icon }}{{ $icon = partial "get-static-image.html" $path }}{{ end }}
   {{ if $icon }}
     {{ if in (slice "jpeg" "png" "webp") $icon.MediaType.SubType }}
       {{ range slice 16 32 48 }}

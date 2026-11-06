@@ -33,6 +33,18 @@ try {
   assert.equal(await page.locator('.hero__title').textContent(), '疏狂');
   assert.ok(!requests.some(request => request.includes('/pagefind/')), 'Search index loaded before search was opened.');
   assert.ok(requests.every(request => new URL(request).origin === new URL(url).origin), 'Unexpected external runtime dependency.');
+  const homeAvatar = await page.locator('.hero__avatar').getAttribute('src');
+  assert.ok(homeAvatar.endsWith('/img/avatar.svg'));
+  const avatarSvg = await (await page.request.get(new URL(homeAvatar, url).href)).text();
+  const embeddedAvatar = avatarSvg.match(/data:image\/webp;base64,([^"\s]+)/)?.[1];
+  assert.ok(embeddedAvatar, 'The homepage avatar must contain the locally built GitHub image.');
+  assert.equal(await page.locator('link[rel="icon"][sizes="32x32"]').count(), 1);
+  const aboutTab = await context.newPage();
+  await aboutTab.goto(new URL('about/', url).href, { waitUntil: 'networkidle' });
+  const aboutAvatar = await aboutTab.locator('.about-profile__avatar').getAttribute('src');
+  const aboutBytes = await (await page.request.get(new URL(aboutAvatar, url).href)).body();
+  assert.deepEqual(Buffer.from(embeddedAvatar, 'base64'), aboutBytes, 'Home and about must use the same avatar.');
+  await aboutTab.close();
   await page.evaluate(() => document.fonts.ready);
   assert.ok(await page.evaluate(() => document.fonts.check('16px "Chillax Variable"')), 'Local navigation font failed to load.');
   await mkdir('.artifacts', { recursive: true });
@@ -174,6 +186,22 @@ try {
       toc: document.querySelector('#toc-aside').getBoundingClientRect().left,
     }));
     assert.ok(bounds.article <= bounds.toc + 1, 'The desktop directory must not cover the article.');
+    if (slug === 'alictf-2026-writeup') {
+      for (const width of [1200, 1280, 1440, 1920]) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.waitForTimeout(250);
+        const layout = await page.evaluate(() => ({
+          article: document.querySelector('.read').getBoundingClientRect().toJSON(),
+          header: document.querySelector('.post-single__header').getBoundingClientRect().toJSON(),
+          toc: document.querySelector('#toc-aside').getBoundingClientRect().toJSON(),
+          pageWidth: document.documentElement.scrollWidth,
+        }));
+        assert.ok(layout.article.width > 800, `Article should use more space at ${width}px.`);
+        assert.ok(layout.article.right <= layout.toc.left + 1, `Directory covers the article at ${width}px.`);
+        assert.ok(Math.abs(layout.header.width - (layout.article.width - 48)) < 2, 'Article header should use the available content width.');
+        assert.ok(layout.pageWidth <= width, `Page overflows at ${width}px.`);
+      }
+    }
     for (const heading of headings) assert.equal(await page.locator('#toc-aside .toc a').getByText(heading, { exact: true }).count(), 1);
     if (slug === 'rctf-2025-writeup') {
       const code = page.locator('.article-content pre').first();

@@ -1,14 +1,14 @@
 <section class="hero">
   <div class="hero__row">
-    {{ with .Site.Params.avatar }}
-    {{ $avSrc := . }}
-    {{ $av := partial "get-static-image.html" $avSrc }}
-    {{ if $av }}
-      {{ $avp := partial "process-image.html" (dict "image" $av "op" "resize" "spec" "264x" "q" 90) }}
-      <img class="hero__avatar" src="{{ $avp.RelPermalink }}" alt="{{ $.Site.Params.author.name | default $.Site.Title }}" width="88" height="88" fetchpriority="high" decoding="async">
-    {{ else }}
-      <img class="hero__avatar" src="{{ $avSrc | relURL }}" alt="{{ $.Site.Params.author.name | default $.Site.Title }}" width="88" height="88" fetchpriority="high" decoding="async">
-    {{ end }}
+    {{ $avatar := partialCached "github-avatar.html" . }}
+    {{ with $avatar }}
+      {{ $imageData := .Content | base64Encode }}
+      {{ $svg := printf `<svg xmlns="http://www.w3.org/2000/svg" width="264" height="264" viewBox="0 0 264 264"><image width="264" height="264" href="data:image/webp;base64,%s"/></svg>` $imageData }}
+      {{ $avatarSvg := resources.FromString "img/avatar.svg" $svg }}
+      {{ $avatarSvg.Publish }}
+      <img class="hero__avatar" src="{{ $avatarSvg.RelPermalink }}" alt="{{ $.Site.Params.author.name | default $.Site.Title }}" width="88" height="88" fetchpriority="high" decoding="async">
+    {{ else with .Site.Params.avatar }}
+      <img class="hero__avatar" src="{{ . | relURL }}" alt="{{ $.Site.Params.author.name | default $.Site.Title }}" width="88" height="88" fetchpriority="high" decoding="async">
     {{ end }}
     <div class="hero__body">
       <h1 class="hero__title">{{ .Site.Params.author.name | default .Site.Title }}</h1>

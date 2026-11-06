@@ -45,9 +45,8 @@ description: "文章摘要"
 
 - 基本信息、导航、头像：`hugo.toml`。
 - 关于页：`content/page/about/index.md`。
-- 关于页头像：每次构建从 GitHub 同步，输出到本站，并由 GitHub Actions 每天自动刷新一次；`hugo.toml` 的 `params.author.githubAvatar` 指定来源，网络失败时使用 `params.author.avatar` 指向的本地备份。
+- 首页与关于页头像、站点图标：每次构建从 GitHub 同步，并由 GitHub Actions 每天自动刷新一次；`hugo.toml` 的 `params.author.githubAvatar` 指定来源，网络失败时使用 `params.author.avatar` 指向的本地备份。首页头像还会输出到 `/img/avatar.svg`，读者无需连接 GitHub 加载图片。
 - 友链：`data/friends.yaml`。
-- 站点图标：`assets/img/site-icon.jpg`，构建时自动生成浏览器与手机书签所需的 PNG 尺寸；在 `hugo.toml` 的 `favicon` 中指定源图。
 
 加密文章沿用主题的 `themes/flavor/scripts/encrypt.sh`；明文只放在已忽略的 `content/private/`。
 
