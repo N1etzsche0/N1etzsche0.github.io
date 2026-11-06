@@ -158,6 +158,54 @@ try {
   assert.ok(linkOrders[0].some(group => group.length > 1), 'The links page needs a group with multiple cards.');
   assert.notDeepEqual(linkOrders[0], linkOrders[1], 'Different random choices should produce different link orders.');
   assert.deepEqual(linkOrders[0].map(group => [...group].sort()), linkOrders[1].map(group => [...group].sort()), 'Shuffling must keep all cards in their original groups.');
+  const scrollPage = await context.newPage();
+  await scrollPage.goto(new URL('p/rctf-2025-writeup/', url).href, { waitUntil: 'domcontentloaded' });
+  await scrollPage.evaluate(() => {
+    const article = document.querySelector('.article-content');
+    for (const [id, value] of [['wheel-short', 'short code'], ['wheel-tall', Array(100).fill('a short line').join('\n')], ['wheel-wide', 'a'.repeat(500)]].reverse()) {
+      const pre = document.createElement('pre');
+      pre.id = id;
+      const code = document.createElement('code');
+      code.textContent = value;
+      pre.append(code);
+      article.prepend(pre);
+    }
+    document.dispatchEvent(new CustomEvent('flavor:enhance', { detail: article }));
+  });
+  const aimAt = async selector => {
+    const pre = scrollPage.locator(selector);
+    await pre.evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    const bounds = await pre.boundingBox();
+    await scrollPage.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    return pre;
+  };
+  const shortCode = await aimAt('#wheel-short');
+  assert.equal(await shortCode.evaluate(element => element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth), true);
+  let pageY = await scrollPage.evaluate(() => scrollY);
+  await scrollPage.mouse.wheel(0, 180);
+  await scrollPage.waitForFunction(previous => scrollY > previous, pageY);
+  const tallCode = await aimAt('#wheel-tall');
+  await tallCode.evaluate(element => { element.scrollTop = 0; });
+  await scrollPage.mouse.wheel(0, 180);
+  await scrollPage.waitForFunction(() => document.querySelector('#wheel-tall').scrollTop > 0);
+  const down = await tallCode.evaluate(element => element.scrollTop);
+  await scrollPage.mouse.wheel(0, -90);
+  await scrollPage.waitForFunction(previous => document.querySelector('#wheel-tall').scrollTop < previous, down);
+  await tallCode.evaluate(element => { element.scrollTop = element.scrollHeight; });
+  pageY = await scrollPage.evaluate(() => scrollY);
+  await scrollPage.mouse.wheel(0, 180);
+  await scrollPage.waitForFunction(previous => scrollY > previous, pageY);
+  const wideCode = await aimAt('#wheel-wide');
+  assert.equal(await wideCode.evaluate(element => element.scrollWidth > element.clientWidth && element.scrollHeight <= element.clientHeight), true);
+  pageY = await scrollPage.evaluate(() => scrollY);
+  await scrollPage.mouse.wheel(0, 100);
+  await scrollPage.waitForFunction(previous => scrollY > previous, pageY);
+  await aimAt('#wheel-wide');
+  await scrollPage.mouse.wheel(180, 0);
+  await scrollPage.waitForFunction(() => document.querySelector('#wheel-wide').scrollLeft > 0);
+  assert.equal(await tallCode.getAttribute('aria-label'), '代码，可纵向滚动');
+  assert.equal(await wideCode.getAttribute('aria-label'), '代码，可横向滚动');
+  await scrollPage.close();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.click('#hamburger');

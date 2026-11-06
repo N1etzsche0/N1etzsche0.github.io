@@ -4,9 +4,11 @@
   const blocks = new WeakMap();
   const resize = new ResizeObserver(entries => {
     for (const { target } of entries) {
-      if (target.scrollWidth > target.clientWidth) {
+      const horizontal = target.scrollWidth > target.clientWidth;
+      const vertical = target.scrollHeight > target.clientHeight;
+      if (horizontal || vertical) {
         target.tabIndex = 0;
-        target.setAttribute('aria-label', '代码，可横向滚动');
+        target.setAttribute('aria-label', `代码，可${horizontal && vertical ? '横向和纵向' : horizontal ? '横向' : '纵向'}滚动`);
       } else {
         target.removeAttribute('tabindex');
         target.removeAttribute('aria-label');

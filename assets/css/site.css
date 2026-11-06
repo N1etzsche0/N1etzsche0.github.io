@@ -67,7 +67,7 @@ body.search-open { overflow: hidden; }
 .article-content li > p + p, .article-content blockquote > p + p { margin-top: 0.8em; }
 .article-content blockquote { padding: 16px 20px; }
 .article-content .highlight pre, .article-content pre:not(.chroma) { padding: 16px 18px; font-size: 0.875rem; line-height: 1.75; }
-.article-content .highlight pre, .article-content pre:not(.chroma) { max-height: 38rem; overflow: auto; overscroll-behavior: contain; }
+.article-content .highlight pre, .article-content pre:not(.chroma) { max-height: 38rem; overflow: auto; overscroll-behavior: auto; }
 .article-content .highlight pre:not(.chroma) { margin: 0; border: 0; border-radius: 0; }
 .code-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 8px 0 18px; border-bottom: 1px solid var(--code-border); font-family: var(--font-mono); font-size: 0.75rem; color: var(--text); }
 .code-toolbar .highlight__copy { position: static; width: auto; min-width: 72px; height: 44px; padding: 0 8px; gap: 6px; background: transparent; color: var(--text); opacity: 1; font-family: var(--font-sans); font-size: 0.75rem; }
