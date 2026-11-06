@@ -74,6 +74,8 @@ disableHugoGeneratorInject = true
     name = "标签"
     url = "/tags/"
     weight = 30
+    [menu.main.params]
+      icon = "tag"
   [[menu.main]]
     identifier = "links"
     name = "友链"

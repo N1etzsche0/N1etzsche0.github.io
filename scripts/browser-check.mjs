@@ -30,6 +30,13 @@ try {
     assert.ok(await page.locator('.navbar').evaluate(element => getComputedStyle(element).backgroundImage.includes('linear-gradient')), 'Original navigation gradient is missing.');
   };
   await checkPalette('light');
+  assert.equal(await page.locator('#nav-links a', { hasText: '标签' }).locator('svg[aria-hidden="true"]').count(), 1, 'Tags should have a decorative icon.');
+  const navBounds = await page.evaluate(() => ({
+    brand: document.querySelector('.navbar__brand').getBoundingClientRect().left,
+    right: document.querySelector('.navbar__right').getBoundingClientRect().right,
+    viewport: document.documentElement.clientWidth,
+  }));
+  assert.ok(navBounds.brand <= 48 && navBounds.viewport - navBounds.right <= 48, 'Desktop navigation should sit closer to both sides.');
   assert.equal(await page.locator('.hero__title').textContent(), '疏狂');
   assert.ok(!requests.some(request => request.includes('/pagefind/')), 'Search index loaded before search was opened.');
   assert.ok(requests.every(request => new URL(request).origin === new URL(url).origin), 'Unexpected external runtime dependency.');
