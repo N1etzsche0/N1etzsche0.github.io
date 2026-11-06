@@ -48,7 +48,6 @@ description: "文章摘要"
 - 关于页头像：每次构建从 GitHub 同步，输出到本站，并由 GitHub Actions 每天自动刷新一次；`hugo.toml` 的 `params.author.githubAvatar` 指定来源，网络失败时使用 `params.author.avatar` 指向的本地备份。
 - 友链：`data/friends.yaml`。
 - 站点图标：`assets/img/site-icon.jpg`，构建时自动生成浏览器与手机书签所需的 PNG 尺寸；在 `hugo.toml` 的 `favicon` 中指定源图。
-- 初始两篇文章用于演示，可直接修改或删除。
 
 加密文章沿用主题的 `themes/flavor/scripts/encrypt.sh`；明文只放在已忽略的 `content/private/`。
 
