@@ -47,7 +47,7 @@
     aside.setAttribute('aria-hidden', String(!value));
     syncMode();
     schedule();
-    if (value && focusPanel) (close || aside).focus({ preventScroll: true });
+    if (value && focusPanel) (compact.matches ? (close || aside) : (aside.querySelector('.toc a') || aside)).focus({ preventScroll: true });
     else if (restoreFocus) button.focus({ preventScroll: true });
   }
   button.addEventListener('click', () => setOpen(!open));
@@ -113,7 +113,7 @@
     pending = true;
     requestAnimationFrame(() => {
       pending = false;
-      let current = null;
+      let current = sections[0] || null;
       for (const section of sections) {
         if (section.heading.getBoundingClientRect().top <= 116) current = section;
         else break;

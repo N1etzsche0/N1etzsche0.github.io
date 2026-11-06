@@ -97,6 +97,22 @@ body.search-open { overflow: hidden; }
 .toc-backdrop[hidden] { display: none; }
 @media (min-width: 1200px) {
   .read.is-toc-open { width: min(1040px, calc(100% - 292px)); max-width: 1040px; margin-left: calc((100% - 260px - min(1040px, 100% - 292px)) / 2); margin-right: auto; }
+  .read__toc {
+    top: 110px;
+    right: max(16px, calc((100% - 1300px) / 2));
+    bottom: 24px;
+    width: 228px;
+    background: transparent;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  }
+  [data-theme="dark"] .read__toc { background: transparent; }
+  .read__toc.is-open { visibility: visible; opacity: 1; transform: none; }
+  .read__toc-bar { display: none; }
+  .read__toc .toc { padding: 0 0 24px 10px; }
+  .read__toc .toc a { padding: 3px 5px; font-size: 0.8125rem; line-height: 1.5; }
 }
 @media (max-width: 1199px) {
   body.toc-open { overflow: hidden; }

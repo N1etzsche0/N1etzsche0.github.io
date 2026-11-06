@@ -84,12 +84,16 @@ try {
   assert.ok(await page.locator('.article-content pre').count());
   assert.ok(await page.locator('.highlight__copy').count(), 'Code copy buttons are missing.');
   assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), false);
-  await page.click('#toc-close');
+  await page.waitForFunction(() => document.querySelector('#toc-aside .toc a')?.getAttribute('aria-current') === 'location');
+  const secondTocLink = page.locator('#toc-aside .toc a').nth(1);
+  await secondTocLink.click();
+  await page.waitForFunction(() => document.querySelectorAll('#toc-aside .toc a')[1]?.getAttribute('aria-current') === 'location');
+  await page.click('#toc-btn');
   assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), true, 'Hidden directory links must not receive keyboard focus.');
   await page.click('#toc-btn');
   assert.equal(await page.locator('#toc-btn').getAttribute('aria-expanded'), 'true');
   assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), false);
-  await page.click('#toc-close');
+  await page.click('#toc-btn');
   assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), true);
   assert.equal(await page.locator('#toc-btn').evaluate(element => element === document.activeElement), true);
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(url).origin });
