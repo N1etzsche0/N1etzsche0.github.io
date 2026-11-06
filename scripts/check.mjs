@@ -35,17 +35,19 @@ for (const filename of htmlFiles) {
   assert.ok(/<html\b[^>]*lang=/.test(html), `Missing language in ${relative}`);
   const redirect = /http-equiv=(?:"refresh"|'refresh'|refresh)/i.test(html);
   if (!redirect) assert.ok(html.includes('name=description') || html.includes('name="description"'), `Missing description in ${relative}`);
-  for (const match of html.matchAll(/\b(?:href|src|data-full)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)) {
-    const value = match.slice(1).find(value => value !== undefined);
-    if (!value || value.startsWith('#') || /^(data:|mailto:|tel:)/.test(value)) continue;
-    const url = new URL(value.replaceAll('&amp;', '&'), pageURL);
-    if (url.origin !== site.origin) continue;
-    if (!url.pathname.startsWith(site.pathname)) { failures.push(`${relative}: URL escapes base path: ${url.pathname}`); continue; }
-    let target = path.join(output, decodeURIComponent(url.pathname.slice(site.pathname.length)));
-    try {
-      if ((await stat(target)).isDirectory()) target = path.join(target, 'index.html');
-      await stat(target);
-    } catch { failures.push(`${relative}: missing ${url.pathname}`); }
+  for (const tag of html.matchAll(/<[a-zA-Z][^>]*>/g)) {
+    for (const match of tag[0].matchAll(/\b(?:href|src|data-full)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)) {
+      const value = match.slice(1).find(value => value !== undefined);
+      if (!value || value.startsWith('#') || /^(data:|mailto:|tel:)/.test(value)) continue;
+      const url = new URL(value.replaceAll('&amp;', '&'), pageURL);
+      if (url.origin !== site.origin) continue;
+      if (!url.pathname.startsWith(site.pathname)) { failures.push(`${relative}: URL escapes base path: ${url.pathname}`); continue; }
+      let target = path.join(output, decodeURIComponent(url.pathname.slice(site.pathname.length)));
+      try {
+        if ((await stat(target)).isDirectory()) target = path.join(target, 'index.html');
+        await stat(target);
+      } catch { failures.push(`${relative}: missing ${url.pathname}`); }
+    }
   }
 }
 assert.deepEqual(failures, [], failures.join('\n'));
