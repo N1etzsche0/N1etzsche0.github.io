@@ -266,6 +266,7 @@ try {
         }));
         assert.ok(layout.article.width > 800, `Article should use more space at ${width}px.`);
         assert.ok(layout.article.right <= layout.toc.left + 1, `Directory covers the article at ${width}px.`);
+        if (width >= 1440) assert.ok(layout.toc.left - layout.article.right >= 40, `Directory needs breathing room at ${width}px.`);
         assert.ok(Math.abs(layout.header.width - (layout.article.width - 48)) < 2, 'Article header should use the available content width.');
         assert.ok(layout.pageWidth <= width, `Page overflows at ${width}px.`);
       }
