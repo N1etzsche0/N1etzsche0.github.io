@@ -255,7 +255,7 @@ try {
     }));
     assert.ok(bounds.article <= bounds.toc + 1, 'The desktop directory must not cover the article.');
     if (slug === 'alictf-2026-writeup') {
-      for (const width of [1200, 1280, 1440, 1920]) {
+      for (const width of [1200, 1280, 1440, 1920, 2560]) {
         await page.setViewportSize({ width, height: 900 });
         await page.waitForTimeout(250);
         const layout = await page.evaluate(() => ({
@@ -267,6 +267,7 @@ try {
         assert.ok(layout.article.width > 800, `Article should use more space at ${width}px.`);
         assert.ok(layout.article.right <= layout.toc.left + 1, `Directory covers the article at ${width}px.`);
         if (width >= 1440) assert.ok(layout.toc.left - layout.article.right >= 40, `Directory needs breathing room at ${width}px.`);
+        assert.ok(width - layout.toc.right <= 32, `Directory should stay close to the right edge at ${width}px.`);
         assert.ok(Math.abs(layout.header.width - (layout.article.width - 48)) < 2, 'Article header should use the available content width.');
         assert.ok(layout.pageWidth <= width, `Page overflows at ${width}px.`);
       }

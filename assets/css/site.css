@@ -111,7 +111,7 @@ body.search-open { overflow: hidden; }
   .read.is-toc-open { width: min(1040px, calc(100% - 292px)); max-width: 1040px; margin-left: calc((100% - 260px - min(1040px, 100% - 292px)) / 2); margin-right: auto; }
   .read__toc {
     top: 110px;
-    right: max(16px, calc((100% - 1380px) / 2));
+    right: calc(16px + env(safe-area-inset-right, 0px));
     bottom: calc(144px + env(safe-area-inset-bottom, 0px));
     width: 236px;
     background: transparent;
