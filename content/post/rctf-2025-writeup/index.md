@@ -28,7 +28,7 @@ tocOpen: true
 
 ### 利用脚本
 
-```Python
+```python
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -427,7 +427,7 @@ Python 沙箱绕过我还不熟悉，不过可以利用 Redis 触发 pickle 反�
 
 ### 利用脚本
 
-```Python
+```python
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -668,7 +668,7 @@ if __name__ == "__main__":
 
 这是一道经典的 Java 反序列化题，可以先复习 [SU18 师傅的文章](https://su18.org/post/hessian/)。
 
-```Java
+```java
 static {
     WHITE_PACKAGES.add("com.rctf.server.tool.");
     WHITE_PACKAGES.add("java.util.");
@@ -686,7 +686,7 @@ static {
 
 题目提供的 `Maybe` 类实现了 `Comparable`，其中的 `compareTo` 方法会调用代理处理器。因此可以选择 `TreeMap` 作为入口，通过它触发 `compareTo`。
 
-```Java
+```java
 //
 // Source code recreated from a .class file by IntelliJ IDEA
 // (powered by FernFlower decompiler)
@@ -750,7 +750,7 @@ public class Maybe extends Proxy implements Comparable<Object>, Serializable {
 
 PoC 如下：使用 java-chains 通过 JNDI 二次反序列化注入内存马。
 
-```Java
+```java
 package org.example;
 
 import com.caucho.hessian.io.Hessian2Input;

