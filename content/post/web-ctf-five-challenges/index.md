@@ -1,6 +1,7 @@
 ---
 title: "HKCERT CTF 2025 线上赛题解"
-slug: "web-ctf-five-challenges"
+slug: "hkcert-ctf-2025-writeup"
+aliases: ["/p/web-ctf-five-challenges/"]
 date: 2025-12-21T16:00:00+08:00
 draft: false
 tags: ["HKCERT CTF", "Web", "Java", "反序列化", "DuckDB"]

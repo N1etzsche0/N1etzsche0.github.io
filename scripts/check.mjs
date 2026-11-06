@@ -15,7 +15,14 @@ const htmlFiles = all.filter(filename => filename.endsWith('.html'));
 const imageHost = JSON.parse(await readFile('data/image_host.json', 'utf8'));
 for (const key of imageHost.images) {
   const [slug] = key.split('/');
-  const html = await readFile(path.join(output, 'p', slug, 'index.html'), 'utf8');
+  let html = await readFile(path.join(output, 'p', slug, 'index.html'), 'utf8');
+  if (/http-equiv=(?:"refresh"|'refresh'|refresh)/i.test(html)) {
+    const canonical = html.match(/<link\b[^>]*rel=(?:"canonical"|'canonical'|canonical)[^>]*href=(?:"([^"]+)"|'([^']+)'|([^\s>]+))/)?.slice(1).find(Boolean);
+    assert.ok(canonical, `Missing canonical URL for image bundle alias ${slug}`);
+    const target = new URL(canonical).pathname.match(/\/p\/([^/]+)\/$/);
+    assert.ok(target, `Invalid article alias for image bundle ${slug}`);
+    html = await readFile(path.join(output, 'p', target[1], 'index.html'), 'utf8');
+  }
   const url = new URL(key, imageHost.baseURL).href;
   const tag = [...html.matchAll(/<img\b[^>]*>/g)].map(match => match[0]).find(value => value.includes(url));
   assert.ok(tag, `Missing R2 image ${key}`);
