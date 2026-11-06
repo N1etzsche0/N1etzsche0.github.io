@@ -10,6 +10,8 @@ aliases: ["/p/alictf-2026-fileury/", "/p/alictf-2026-mhga/"]
 tocOpen: true
 ---
 
+本文记录 ALICTF 2026 的两道 Web 题：Fileury 通过 Apache Fury 反序列化构造文件写入，MHGA 则围绕 JNDI、Hessian 和 JDBC 组合利用展开。
+
 ## Fileury
 
 自 RCTF 一役沉寂许久，中间更是在 0CTF 被打得找不着北，未曾想今朝阿里云 CTF 竟让我寻回了用武之地。
@@ -28,7 +30,7 @@ Object obj = fury.deserialize(Base64.getDecoder().decode(input));
 
 Fury 通过 `fury/disallowed.txt` 维护一份类黑名单，在反序列化时会检查类名是否在黑名单中。
 
-**黑名单检查逻辑** (`DisallowedList.java`):
+黑名单检查逻辑（`DisallowedList.java`）：
 
 ```Java
 static void checkNotInDisallowedList(String clsName) {
@@ -38,13 +40,11 @@ static void checkNotInDisallowedList(String clsName) {
 }
 ```
 
-黑名单包含了大部分常用反序列化 Gadget 类:
+复盘去年的题解后发现，当前环境缺失了 `com.feilong` 依赖，二次反序列化绕过黑名单的方案因此失效，需要继续寻找利用链。
 
-复盘去年 WP 发现，当前环境缺失了 `com.feilong` 依赖，导致二次反序列化绕过黑名单的方案失效，这也意味着挖掘新利用链
+![Fileury 题解截图 1](2.png)
 
-![img](2.png)
-
-先分析一下黑名单，包含了大部分常用反序列化 Gadget 类:
+黑名单拦截了大部分常用的反序列化 Gadget 类：
 
 | Gadget 类                       | 状态                                    |
 | ------------------------------- | --------------------------------------- |
@@ -55,7 +55,7 @@ static void checkNotInDisallowedList(String clsName) {
 | `TiedMapEntry`                  | ❌ 未在黑名单但依赖的 Transformer 被拦截 |
 | `BadAttributeValueExpException` | ❌ 被拦截                                |
 
-**未被拦截的关键类**:
+未被拦截的关键类：
 
 - `org.aspectj.weaver.tools.cache.SimpleCache$StoreableCachingMap`
 - `org.apache.commons.collections.map.LazyMap`
@@ -64,13 +64,13 @@ static void checkNotInDisallowedList(String clsName) {
 - `org.apache.commons.collections.functors.ConstantFactory`
 - `org.apache.commons.collections.functors.StringValueTransformer`
 
-起初试图复刻去年的思路挖掘二次反序列化，但此路俺没走通，失败了
+起初我试图沿用去年的思路寻找二次反序列化入口，但没有成功。
 
-![img](3.png)
+![Fileury 题解截图 2](3.png)
 
 ### 构造任意文件写入链
 
-就在一筹莫展之际，猛地想起老大梅子酒在 Non-RCE 题解中提到的 `StoreableCachingMap` 链子。这条链子能实现任意路径写文件，幸运地避开了黑名单的拦截**！**
+就在一筹莫展之际，猛地想起老大梅子酒在 Non-RCE 题解中提到的 `StoreableCachingMap` 链子。这条链子能实现任意路径写文件，幸运地避开了黑名单的拦截！
 
 ```Java
 HashSet.readObject()
@@ -84,9 +84,9 @@ HashSet.readObject()
                                 FileOutputStream.write()
 ```
 
-![img](4.png)
+![Fileury 题解截图 3](4.png)
 
-**适配Fury 完整****POC****如下：**
+适配 Fury 的完整 PoC 如下：
 
 ```Java
 package reproduce;
@@ -174,7 +174,7 @@ public class ExpAspectJ {
 }
 ```
 
-**利用链触发流程**:
+利用链触发流程：
 
 ```Plain
 PriorityQueue.readObject()
@@ -194,9 +194,9 @@ PriorityQueue.readObject()
 
 ### 覆盖 dnsns.jar 并触发加载
 
-有了写文件能力，我以为胜券在握。尝试了包括但不限于计划任务、LD_Preload、charsets.jar 等各种写入姿势，结果竟无一奏效。苦也！这波折腾直接把狂子写到怀疑人生，当时心凉半截，只道是这一血要拱手让人了
+有了写文件能力后，我尝试了计划任务、`LD_PRELOAD`、`charsets.jar` 等方式，但都没有奏效。这波折腾一度让我以为一血要拱手让人了。
 
-![img](5.png)
+![Fileury 题解截图 4](5.png)
 
 正所谓山重水复疑无路，柳暗花明又一村。绝境中忽忆起一篇 FastJson 写入绕过的文章，妙招在于开启 `-verbose:class` 参数，通过监控类加载情况，精准定位未被加载的 JAR 包实施覆盖利用。
 
@@ -225,9 +225,7 @@ PriorityQueue.readObject()
 2026-02-02 13:51:14 [Loaded java.util.concurrent.atomic.LongAdder from /usr/local/openjdk-8/jre/lib/rt.jar]
 ```
 
-这意味着可以通过反序列化
-
-`sun.net.spi.nameservice.dns.DNSNameServiceDescriptor`触发`dnsns.jar`加载。这一记回马枪，直接让死局复活
+这意味着可以通过反序列化 `sun.net.spi.nameservice.dns.DNSNameServiceDescriptor` 触发 `dnsns.jar` 加载。这一记回马枪，让死局复活。
 
 ```Java
 package reproduce;
@@ -263,13 +261,13 @@ public class ExpDNS {
 }
 ```
 
-至于`dnsns.jar` 怎么改？驰骋AWDP赛场的诸君，像这种`JarEditor` 手改字节码的基操，想必无需我多言了，对吧？
+至于 `dnsns.jar` 怎么改？可以使用 `JarEditor` 修改字节码。
 
-![img](6.png)
+![Fileury 题解截图 5](6.png)
 
-先发包覆盖`dnsns.jar` ，再发包触发恶意类加载，完成RCE
+先发包覆盖 `dnsns.jar`，再发包触发恶意类加载，完成 RCE。
 
-![img](7.png)
+![Fileury 题解截图 6](7.png)
 
 比赛结束后，我试图向她解释什么是 Apache Fury 的黑名单绕过，解释那个 `dnsns.jar` 的覆盖是多么的神来之笔。她只是淡淡地看了我一眼转身就走了
 
@@ -277,11 +275,9 @@ public class ExpDNS {
 
 **可惜她不懂JAVA，也不懂我的⚡超！⚡级！⚡炎！🔥舞！🔥爆！⚡爆！⚡回！⚡**
 
-![img](8.png)
+![Fileury 题解截图 7](8.png)
 
 ### 参考资料
-
-参考资料：
 
 1. [AliyunCTF2025 题解之 Jtools Fury 反序列化利用分析](https://mp.weixin.qq.com/s/dMl0aEg6p7w7MKlUe7pCdg?poc_token=HO5E0WejTX00WfrQI8oI22YsiTkxiEcLfLgbYyWv)
 2. [AliyunCTF2025-JTools分析](https://eddiemurphy89.github.io/2025/03/01/AliyunCTF2025-JTools分析/#前言)
@@ -291,9 +287,9 @@ public class ExpDNS {
 
 ## MHGA
 
-我曾经发誓这辈子不会再为Java流泪，但MHGA这JNDI+Hessian+JDBC组合洞的韧性让我哭花了妆😭😭😭
+我曾经发誓这辈子不会再为 Java 流泪，但 MHGA 的 JNDI + Hessian + JDBC 组合洞还是让我哭花了妆。😭
 
-### **入口点**
+### 入口点 {#入口点}
 
 题目提供了一个 Spring Boot 应用，核心在于 `Web.java` 提供了一个 HTTP 接口，该接口接受一个 `X-Lookup-URL` 头，并对其进行 JNDI `lookup`。
 
@@ -303,9 +299,9 @@ String url = exchange.getRequestHeaders().getFirst("X-Lookup-URL");
 new InitialContext().lookup(url);
 ```
 
-这是一个典型的 JNDI 注入入口，JDK版本为 OpenJDK 11.0.29 
+这是一个典型的 JNDI 注入入口，JDK 版本为 OpenJDK 11.0.29。
 
-### **Stage 1:**  **Hessian** **链构造**
+### Stage 1：构造 Hessian 链 {#stage-1--hessian-链构造}
 
 题目名称暗示了 Hessian。检查依赖发现 `com.caucho.hessian.client.HessianProxyFactory` 实现了 `javax.naming.spi.ObjectFactory`。
 
@@ -350,13 +346,13 @@ public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtabl
 
 攻击者响应该 HTTP 请求时，返回一个恶意的 Hessian 序列化数据（RPC Reply），客户端在收到响应后会反序列化该数据，从而触发 Gadget Chain。
 
-至于Hessian Payload，发现存在Jackson依赖就好办了，使用 `Jackson POJONode` 触发 `UnixPrintService`的getter 方法达成RCE 
+至于 Hessian Payload，发现环境存在 Jackson 依赖后，可以使用 `Jackson POJONode` 触发 `UnixPrintService` 的 getter 方法，达成 RCE。
 
-2026 年了，不识 `UnixPrintService`，纵称英雄也枉然，快去学习我大哥yemoli在KCON2023首秀的《**Magic In Java** **API**》议题
+不熟悉 `UnixPrintService` 的话，可以参考 yemoli 在 KCon 2023 分享的《Magic In Java API》议题。
 
-![img](9.png)
+![MHGA 题解截图 1](9.png)
 
-**完整****POC****如下（** **Hessian** **序列化****数据必须是 2.0** **RPC** **Reply 格式）：**
+完整 PoC 如下，Hessian 序列化数据必须采用 2.0 RPC Reply 格式：
 
 ```Java
 package org.example;
@@ -453,9 +449,9 @@ public class ExploitGenerator {
 
 直接通过 JNDI 返回 Hessian 代理对象并不会立即触发 RCE，因为 `InitialContext.lookup` 仅仅返回对象，并不一定会调用其任意方法。
 
-### **Stage 2:  ViburDBCPObjectFactory到 Databricks** **JDBC**
+### Stage 2：从 ViburDBCPObjectFactory 到 Databricks JDBC {#stage-2--viburdbcpobjectfactory到-databricks-jdbc}
 
-首先想到的是浅蓝师傅的《探索高版本 JDK 下 JNDI 漏洞的利用方法》提到的`LookupRef` 可以触发二次JNDI请求，后续会调用getClass()方法，触发hessian反序列化，但是其只存在在Tomcat 依赖中
+首先想到浅蓝师傅在《探索高版本 JDK 下 JNDI 漏洞的利用方法》中提到的 `LookupRef`。它可以触发二次 JNDI 请求，后续调用 `getClass()` 触发 Hessian 反序列化，但它只存在于 Tomcat 依赖中。
 
 难道这就陷入到僵局了嘛，Bro😭😭😭
 
@@ -566,11 +562,11 @@ public Object getObjectInstance(Object obj, Name name, Context nameCtx,
 }
 ```
 
-![img](10.png)
+![MHGA 题解截图 2](10.png)
 
-继续分析发现还存在ViburDBCPObjectFactory 可以利用，其中，允许通过 JNDI Reference 实例化并配置一个 DataSource，且会自动调用其 `start()`方法内部调用 `DriverManager.getDriver(jdbcUrl)`，从而触发JDBC 攻击
+继续分析后发现还可以利用 `ViburDBCPObjectFactory`：它允许通过 JNDI Reference 实例化并配置 DataSource，并自动调用 `start()`。该方法内部会调用 `DriverManager.getDriver(jdbcUrl)`，从而触发 JDBC 攻击。
 
-值得庆幸的是有 Databricks JDBC 驱动且存在CVE-2024-49194 会触发JNDI注入，
+环境中存在 Databricks JDBC 驱动，而 CVE-2024-49194 可用于触发 JNDI 注入。
 
 搭建 HTTP 服务器，提供 `jaas.conf`：
 
@@ -583,7 +579,7 @@ Client {
 };
 ```
 
-当 JDBC 驱动加载此配置并进行身份验证时，`JndiLoginModule` 会读取 `user.provider.url` 并执行 `ctx.lookup()`，那么整条攻击链条就瞬间闭环了
+当 JDBC 驱动加载此配置并进行身份验证时，`JndiLoginModule` 会读取 `user.provider.url` 并执行 `ctx.lookup()`，整条攻击链就闭环了。
 
 **攻击链路：**
 
@@ -597,27 +593,25 @@ Client {
 8. **Server**: 反序列化 Hessian Payload -> `UnixPrintService` -> RCE
 9. **RCE**: `chmod 444 /flag && cat /flag` -> CAT FLAG
 
-![img](11.png)
+![MHGA 题解截图 3](11.png)
 
-### Stage 3:  获取FLAG
+### Stage 3：获取 FLAG {#stage-3--获取flag}
 
-改写x1r0z 师傅的`JNDIMap` 项目修改参考 https://github.com/N1etzsche0/JNDIMap
+修改 x1r0z 师傅的 `JNDIMap` 项目，具体改动可参考 [JNDIMap 分支](https://github.com/N1etzsche0/JNDIMap)。
 
-![img](12.png)
+![MHGA 题解截图 4](12.png)
 
 爽！😎这才叫RCE🎶！😋👍爽！😎这才叫RCE🎶！😋👍😎这才叫RCE🎶！
 
-![img](13.png)
+![MHGA 题解截图 5](13.png)
 
 GGWP
 
 青山不改，绿水长流。山水有相逢，下篇WP再见
 
-![img](14.png)
+![MHGA 题解截图 6](14.png)
 
 ### 参考资料
-
-参考资料：
 
 1. [Magic In Java Api](https://github.com/knownsec/KCon/blob/master/2023/Magic In Java Api.pdf)
 2. [探索高版本 JDK 下 JNDI 漏洞的利用方法](https://tttang.com/archive/1405/)

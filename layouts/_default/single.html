@@ -81,7 +81,10 @@
   </button>
   <aside class="read__toc" id="toc-aside" aria-hidden="true" aria-label="{{ T "toc-label" }}"{{ if .Params.tocOpen }} data-toc-auto-open="true"{{ end }}>
     <div class="read__toc-bar">
-      <p class="read__toc-title">{{ T "toc-title" }}</p>
+      <div class="read__toc-heading">
+        <span class="read__toc-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 6h14M5 12h14M5 18h9"/></svg></span>
+        <div><p class="read__toc-title">{{ T "toc-title" }}</p><p class="read__toc-hint">点击标题跳转</p></div>
+      </div>
       <button class="read__toc-close" id="toc-close" type="button" aria-label="{{ T "toc-close" }}">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>

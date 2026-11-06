@@ -66,6 +66,7 @@ body.search-open { overflow: hidden; }
 .article-content li > p + p, .article-content blockquote > p + p { margin-top: 0.8em; }
 .article-content blockquote { padding: 16px 20px; }
 .article-content .highlight pre, .article-content pre:not(.chroma) { padding: 16px 18px; font-size: 0.875rem; line-height: 1.75; }
+.article-content .highlight pre, .article-content pre:not(.chroma) { max-height: 38rem; overflow: auto; overscroll-behavior: contain; }
 .article-content .highlight pre:not(.chroma) { margin: 0; border: 0; border-radius: 0; }
 .code-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 8px 0 18px; border-bottom: 1px solid var(--code-border); font-family: var(--font-mono); font-size: 0.75rem; color: var(--text); }
 .code-toolbar .highlight__copy { position: static; width: auto; min-width: 72px; height: 44px; padding: 0 8px; gap: 6px; background: transparent; color: var(--text); opacity: 1; font-family: var(--font-sans); font-size: 0.75rem; }
@@ -78,14 +79,28 @@ body.search-open { overflow: hidden; }
 .post-footer__nav small { display: block; margin-bottom: 6px; }
 .reading-progress { position: fixed; top: 70px; left: 0; right: 0; z-index: 1001; height: 2px; pointer-events: none; }
 .reading-progress span { display: block; width: 100%; height: 100%; background: var(--link); transform: scaleX(0); transform-origin: left; }
-.read__toc { width: 288px; background: var(--bg); }
-.read__toc-bar { padding: 10px 12px 10px 20px; }
-.read__toc-close { width: 44px; height: 44px; }
-.read__toc .toc { padding: 16px 12px 40px; overscroll-behavior: contain; }
-.read__toc .toc a { padding: 8px; border-radius: 6px; color: var(--text); line-height: 1.65; }
+.read__toc { width: 288px; background: var(--bg); box-shadow: -12px 0 32px rgba(0, 0, 0, 0.025); }
+.read__toc-bar { padding: 20px 16px 18px 22px; }
+.read__toc-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.read__toc-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; border-radius: 11px; background: var(--accent-soft); color: var(--link); }
+.read__toc-icon svg { width: 19px; height: 19px; }
+.read__toc-title { color: var(--heading); font-size: 0.9375rem; letter-spacing: 0.04em; }
+.read__toc-hint { margin: 3px 0 0; color: var(--meta); font-size: 0.6875rem; line-height: 1.4; }
+.read__toc-close { width: 40px; height: 40px; border-radius: 10px; }
+.read__toc .toc { padding: 20px 16px 40px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--divider) transparent; }
+.read__toc .toc ul { list-style: none; margin: 0; }
+.read__toc .toc nav > ul { padding: 0; counter-reset: toc-section; }
+.read__toc .toc nav > ul > li { counter-increment: toc-section; margin: 0 0 16px; }
+.read__toc .toc nav > ul > li > a { display: flex; align-items: baseline; gap: 10px; color: var(--heading); font-size: 0.875rem; font-weight: 600; }
+.read__toc .toc nav > ul > li > a::before { content: counter(toc-section, decimal-leading-zero); color: var(--meta); font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 400; }
+.read__toc .toc nav > ul > li > ul { margin: 4px 0 0 14px; padding: 0 0 0 12px; border-left: 1px solid var(--divider); }
+.read__toc .toc li { margin: 2px 0; }
+.read__toc .toc a { display: block; padding: 7px 9px; border-radius: 8px; color: var(--text); font-size: 0.8125rem; line-height: 1.55; overflow-wrap: anywhere; }
+.read__toc .toc a strong { font-weight: inherit; }
 .read__toc .toc a:hover { color: var(--link); background: var(--hover-lift); }
-.read__toc .toc li.active-class > a { color: var(--link); background: var(--accent-soft); font-weight: 500; }
-.read__toc .toc li { margin-bottom: 2px; }
+.read__toc .toc li.active-class > a { color: var(--link); background: var(--accent-soft); font-weight: 600; }
+.read__toc .toc nav > ul > li:has(.active-class) > a::before,
+.read__toc .toc nav > ul > li.active-class > a::before { color: var(--link); }
 .toc-backdrop { position: fixed; inset: 70px 0 0; z-index: 940; background: var(--search-backdrop); }
 .toc-backdrop[hidden] { display: none; }
 @media (min-width: 1200px) {

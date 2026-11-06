@@ -10,19 +10,21 @@ aliases: ["/p/rctf-2025-rootkb/", "/p/rctf-2025-rootkb-minusminus/", "/p/rctf-20
 tocOpen: true
 ---
 
+本文记录 RCTF 2025 的三道 Web 题：RootKB、RootKB-- 和 maybe_easy，分别涉及动态库劫持、Redis 反序列化与 Java 反序列化利用链。
+
 ## RootKB
 
-当时看见这题俺都惊了，为什么最新版本7~8解，低版本0解
+看到解题情况时有些惊讶：最新版本已有 7～8 解，低版本却是 0 解。
 
-![img](1.png)
+![RootKB 题解截图 1](1.png)
 
-在pycharm 上对比发现 v2.3.1 和 v2.3.0 改动发现添加了sandbox.so 和 LD_PRELOAD 环境变量且sandbox.so 允许被覆盖，那么参考 LD_PRELOAD 劫持即可
+在 PyCharm 中对比 v2.3.1 和 v2.3.0，发现新版本加入了 `sandbox.so` 和 `LD_PRELOAD` 环境变量，而且 `sandbox.so` 可以被覆盖。因此可以尝试通过 `LD_PRELOAD` 劫持执行。
 
-![img](2.png)
+![RootKB 题解截图 2](2.png)
 
-感觉开发者的修法好抽象，用sandbox.so修复了一个SSRF结果又来一个RCE，俺也不知道俺也不敢问
+开发者用 `sandbox.so` 修复了 SSRF，却又引入了 RCE，这修法让人有点摸不着头脑。
 
-![img](3.png)
+![RootKB 题解截图 3](3.png)
 
 ### 利用脚本
 
@@ -413,15 +415,15 @@ void _revshell_init(void) {
 }
 ```
 
-VPS 上接收shell ，获得FLAG
+在 VPS 上接收 Shell，获得 FLAG。
 
-![img](4.png)
+![RootKB 题解截图 4](4.png)
 
 ## RootKB--
 
-Python 沙箱绕过俺不会，但是打redis 触发 pickle 反序列化这个俺会，话不多说直接丢脚本
+Python 沙箱绕过我还不熟悉，不过可以利用 Redis 触发 pickle 反序列化。下面是利用脚本。
 
-![img](5.png)
+![RootKB-- 题解截图 1](5.png)
 
 ### 利用脚本
 
@@ -664,7 +666,7 @@ if __name__ == "__main__":
 
 ## maybe_easy
 
-经典JAVA 反序列化题目，复习一下[SU18 巨佬文章](https://su18.org/post/hessian/)
+这是一道经典的 Java 反序列化题，可以先复习 [SU18 师傅的文章](https://su18.org/post/hessian/)。
 
 ```Java
 static {
@@ -678,11 +680,11 @@ static {
 
 ### 白名单与利用链分析
 
-观察发现白名单跟`Spring AOP` 和 `Spring Context & AOP` 两条链子关系很大，最后极有可能打的是JNDI
+观察白名单发现，它与 `Spring AOP` 和 `Spring Context & AOP` 两条链子关系很大，最终利用方向很可能是 JNDI。
 
-![img](6.png)
+![maybe_easy 题解截图 1](6.png)
 
-给了个chain 类存在compareTo方法，那么kick-off入口类也就确定了是TreeMap，TreeMap可以触发compareTo
+题目提供的 `Maybe` 类实现了 `Comparable`，其中的 `compareTo` 方法会调用代理处理器。因此可以选择 `TreeMap` 作为入口，通过它触发 `compareTo`。
 
 ```Java
 //
@@ -714,39 +716,39 @@ public class Maybe extends Proxy implements Comparable<Object>, Serializable {
 }
 ```
 
-在idea 里面扒一扒继承InvocationHandler  接口且在白名单的类有哪些，只有这三个
+在 IDEA 中查找白名单内实现了 `InvocationHandler` 接口的类，找到了下面三个。
 
-![img](7.png)
+![maybe_easy 题解截图 2](7.png)
 
-EarlySingletonInvocationHandler 类看着没啥用
+`EarlySingletonInvocationHandler` 看起来没有合适的利用点。
 
-![img](8.png)
+![maybe_easy 题解截图 3](8.png)
 
-ServiceLocatorInvocationHandler 类最后会触发`args[0]`的toString 方法，利用难度太大
+`ServiceLocatorInvocationHandler` 最终会触发 `args[0]` 的 `toString()` 方法，利用难度较大。
 
-![img](9.png)
+![maybe_easy 题解截图 4](9.png)
 
-![img](10.png)
+![maybe_easy 题解截图 5](10.png)
 
-![img](11.png)
+![maybe_easy 题解截图 6](11.png)
 
-参考Spring1 链子易知ObjectFactoryDelegatingInvocationHandler可以自定义的ObjectFactory 类触发 getObject 方法
+参考 Spring1 链，可以让 `ObjectFactoryDelegatingInvocationHandler` 触发自定义 `ObjectFactory` 的 `getObject()` 方法。
 
-![img](12.png)
+![maybe_easy 题解截图 7](12.png)
 
-翻了一下找到了TargetBeanObjectFactory 这个类，恰巧SimpleJndiBeanFactory 这个类继承自BeanFactory 接口，其中的getBean 方法会触发lookup ，一切就大功告成了
+接着找到 `TargetBeanObjectFactory`。`SimpleJndiBeanFactory` 实现了 `BeanFactory` 接口，其 `getBean()` 方法会触发 `lookup`，可以用来串起后续调用。
 
-![img](13.png)
+![maybe_easy 题解截图 8](13.png)
 
-![img](14.png)
+![maybe_easy 题解截图 9](14.png)
 
-![img](15.png)
+![maybe_easy 题解截图 10](15.png)
 
-![img](16.png)
+![maybe_easy 题解截图 11](16.png)
 
 ### 利用脚本
 
-PoC如下，用java-chains 打 JNDI 二次反序列化注入内存马即可
+PoC 如下：使用 java-chains 通过 JNDI 二次反序列化注入内存马。
 
 ```Java
 package org.example;
@@ -846,8 +848,8 @@ public class PoC1 {
 }
 ```
 
-![img](17.png)
+![maybe_easy 题解截图 12](17.png)
 
-感谢出题师傅手下留情，俺做出来了，要是学了这么久的JAVA要是这次再爆0，俺真的会玉玉了
+感谢出题师傅手下留情，这次总算做出来了。学了这么久的 Java，要是再爆零真的会难过。
 
-![img](18.png)
+![maybe_easy 题解截图 13](18.png)

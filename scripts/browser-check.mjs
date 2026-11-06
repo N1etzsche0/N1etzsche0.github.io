@@ -175,6 +175,10 @@ try {
     }));
     assert.ok(bounds.article <= bounds.toc + 1, 'The desktop directory must not cover the article.');
     for (const heading of headings) assert.equal(await page.locator('#toc-aside .toc a').getByText(heading, { exact: true }).count(), 1);
+    if (slug === 'rctf-2025-writeup') {
+      const code = page.locator('.article-content pre').first();
+      assert.ok(await code.evaluate(element => element.scrollHeight > element.clientHeight), 'Long code samples must scroll inside their panel.');
+    }
     await page.setViewportSize({ width: 390, height: 844 });
     assert.equal(await page.locator('#toc-aside').getAttribute('aria-hidden'), 'true');
     await page.click('#toc-btn');
