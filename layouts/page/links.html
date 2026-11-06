@@ -86,6 +86,12 @@
 
   document.querySelectorAll("[data-links-grid]").forEach((grid) => {
     const cards = Array.from(grid.querySelectorAll("[data-links-card]"));
+    // Shuffle each group once per page load; resizing keeps the same order.
+    for (let i = cards.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+    grid.append(...cards);
     cards.forEach((card, index) => {
       styleSpot(card, index);
     });
@@ -93,8 +99,7 @@
     placeNotes(grid);
   });
 
-  // Follow data/friends.yaml from left to right, then top to bottom.
-  // Stable positions preserve the same order on reload and resize.
+  // Arrange the shuffled DOM order from left to right, then top to bottom.
   function placeSpots(paper, cards) {
     cards.forEach((card) => {
       card.style.left = "";

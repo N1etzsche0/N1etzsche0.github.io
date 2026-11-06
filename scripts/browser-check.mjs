@@ -142,6 +142,22 @@ try {
     assert.equal((await page.goto(new URL(route, url).href, { waitUntil: 'networkidle' })).status(), 200);
     assert.ok((await page.locator('h1').first().textContent()).trim());
   }
+  const linkOrders = [];
+  for (const random of [0, 0.999999]) {
+    const linksPage = await context.newPage();
+    await linksPage.addInitScript(value => { Math.random = () => value; }, random);
+    await linksPage.goto(new URL('links/', url).href, { waitUntil: 'networkidle' });
+    const order = () => linksPage.locator('[data-links-grid]').evaluateAll(grids => grids.map(grid => [...grid.querySelectorAll('[data-links-card]')].map(card => card.dataset.name)));
+    const desktop = await order();
+    await linksPage.setViewportSize({ width: 390, height: 844 });
+    await linksPage.waitForTimeout(200);
+    assert.deepEqual(await order(), desktop, 'Resizing should preserve the shuffled order.');
+    linkOrders.push(desktop);
+    await linksPage.close();
+  }
+  assert.ok(linkOrders[0].some(group => group.length > 1), 'The links page needs a group with multiple cards.');
+  assert.notDeepEqual(linkOrders[0], linkOrders[1], 'Different random choices should produce different link orders.');
+  assert.deepEqual(linkOrders[0].map(group => [...group].sort()), linkOrders[1].map(group => [...group].sort()), 'Shuffling must keep all cards in their original groups.');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.click('#hamburger');
