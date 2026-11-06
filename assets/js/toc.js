@@ -37,7 +37,7 @@
     } else aside.removeAttribute('aria-modal');
   }
 
-  function setOpen(value, restoreFocus = true) {
+  function setOpen(value, restoreFocus = true, focusPanel = true) {
     open = value;
     if (!value) restoreBackground();
     aside.inert = !value;
@@ -47,13 +47,16 @@
     aside.setAttribute('aria-hidden', String(!value));
     syncMode();
     schedule();
-    if (value) (close || aside).focus({ preventScroll: true });
+    if (value && focusPanel) (close || aside).focus({ preventScroll: true });
     else if (restoreFocus) button.focus({ preventScroll: true });
   }
   button.addEventListener('click', () => setOpen(!open));
   close?.addEventListener('click', () => setOpen(false));
   backdrop.addEventListener('click', () => setOpen(false));
-  compact.addEventListener('change', syncMode);
+  compact.addEventListener('change', () => {
+    if (aside.dataset.tocAutoOpen === 'true' && compact.matches && open) setOpen(false, false);
+    else syncMode();
+  });
   document.getElementById('search-btn')?.addEventListener('click', () => { if (open) setOpen(false, false); });
   document.addEventListener('keydown', event => {
     if (open && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') setOpen(false);
@@ -130,4 +133,5 @@
   addEventListener('resize', schedule);
   document.addEventListener('flavor:enhance', enhance);
   enhance();
+  if (aside.dataset.tocAutoOpen === 'true' && !compact.matches) setOpen(true, false, false);
 })();

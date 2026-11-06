@@ -158,6 +158,28 @@ try {
   assert.equal(await restricted.locator('#hamburger').getAttribute('aria-expanded'), 'true');
   assert.deepEqual(storageErrors, [], 'Blocked browser storage must not break theme or navigation.');
   await blocked.close();
+  for (const [slug, headings] of [
+    ['alictf-2026-writeup', ['Fileury', 'MHGA']],
+    ['rctf-2025-writeup', ['RootKB', 'RootKB–', 'maybe_easy']],
+  ]) {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(new URL(`p/${slug}/`, url).href, { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#toc-aside').getAttribute('aria-hidden'), 'false');
+    assert.equal(await page.locator('#toc-aside').evaluate(element => element.inert), false);
+    const bounds = await page.evaluate(() => ({
+      article: document.querySelector('.read').getBoundingClientRect().right,
+      toc: document.querySelector('#toc-aside').getBoundingClientRect().left,
+    }));
+    assert.ok(bounds.article <= bounds.toc + 1, 'The desktop directory must not cover the article.');
+    for (const heading of headings) assert.equal(await page.locator('#toc-aside .toc a').getByText(heading, { exact: true }).count(), 1);
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.equal(await page.locator('#toc-aside').getAttribute('aria-hidden'), 'true');
+    await page.click('#toc-btn');
+    assert.equal(await page.locator('#toc-aside').getAttribute('aria-modal'), 'true');
+    await page.locator('#toc-aside .toc a').getByText(headings[0], { exact: true }).click();
+    assert.equal(await page.locator('#toc-aside').getAttribute('aria-hidden'), 'true');
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
   console.log(`Browser checks passed at ${basePath}: original palettes, lazy search, keyboard focus, theme across tabs, blocked storage, mobile menus, clipboard success/denial, article links/progress, responsive directory, all pages and 404.`);
 } finally {
   await browser?.close();

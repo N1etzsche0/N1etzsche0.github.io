@@ -50,6 +50,8 @@ body.search-open { overflow: hidden; }
 .article-content > p { margin: 0 0 1.2em; }
 .article-content > p:last-child { margin-bottom: 0; }
 .article-content :is(h2, h3, h4) { font-weight: 600; line-height: 1.6; }
+.article-content > h2 { margin-top: 2.4em; padding-bottom: 0.35em; border-bottom: 1px solid var(--divider); }
+.article-content > h3 { margin-top: 2em; }
 .article-content pre, .article-content .highlight pre { line-height: 1.65; }
 .article-content a { text-underline-offset: 0.24em; }
 .read { max-width: 800px; }
