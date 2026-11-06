@@ -12,8 +12,6 @@ tocOpen: true
 
 ## RootKB
 
-本文最初发表于 [SU 战队的 2025 RCTF WriteUp](https://su-team.cn/post/rctf-2025-su-wu/#rootkb)。
-
 当时看见这题俺都惊了，为什么最新版本7~8解，低版本0解
 
 ![img](1.png)
@@ -421,8 +419,6 @@ VPS 上接收shell ，获得FLAG
 
 ## RootKB--
 
-本文最初发表于 [SU 战队的 2025 RCTF WriteUp](https://su-team.cn/post/rctf-2025-su-wu/#rootkb-1)。
-
 Python 沙箱绕过俺不会，但是打redis 触发 pickle 反序列化这个俺会，话不多说直接丢脚本
 
 ![img](5.png)
@@ -667,8 +663,6 @@ if __name__ == "__main__":
 ```
 
 ## maybe_easy
-
-本文最初发表于 [SU 战队的 2025 RCTF WriteUp](https://su-team.cn/post/rctf-2025-su-wu/#maybe_easy)。
 
 经典JAVA 反序列化题目，复习一下[SU18 巨佬文章](https://su18.org/post/hessian/)
 
