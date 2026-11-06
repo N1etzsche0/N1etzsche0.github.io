@@ -63,6 +63,14 @@
     {{- $full = $image.RelPermalink -}}
     {{- $Width = $image.Width -}}
     {{- $Height = $image.Height -}}
+    {{- /* Only images verified in R2 use the image host; new local images still work. */ -}}
+    {{- with .Page.File -}}
+      {{- $key := path.Join (strings.TrimPrefix "post/" .Dir) $dest -}}
+      {{- if in hugo.Data.image_host.images $key -}}
+        {{- $src = urls.JoinPath hugo.Data.image_host.baseURL $key -}}
+        {{- $full = $src -}}
+      {{- end -}}
+    {{- end -}}
     {{- if and $displayW $Width (gt $Width $displayW) -}}
       {{- $Height = int (math.Round (div (mul (float $Height) (float $displayW)) (float $Width))) -}}
       {{- $Width = $displayW -}}

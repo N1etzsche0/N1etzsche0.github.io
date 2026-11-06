@@ -43,6 +43,8 @@ description: "文章摘要"
 
 准备发布时改为 `draft: false`，同时确保日期不是未来时间。`sticky: true` 可以置顶。
 
+文章图片保留在文章目录作为原图备份。已上传到 Cloudflare R2 的图片列在 `data/image_host.json`，生成的文章会从 `img.shukuang.fyi` 加载原图。新图片先上传到 R2 的 `shukuang-blog-images` 存储桶，路径使用 `文章目录名/图片文件名`；确认公开地址可访问后，再把该路径加入清单。未列入清单的图片仍由 GitHub Pages 提供，不影响新文章预览和发布。
+
 - 基本信息、导航、头像：`hugo.toml`。
 - 关于页：`content/page/about/index.md`。
 - 首页与关于页头像、站点图标：每次构建从 GitHub 同步，并由 GitHub Actions 每天自动刷新一次；`hugo.toml` 的 `params.author.githubAvatar` 指定来源，网络失败时使用 `params.author.avatar` 指向的本地备份。首页头像还会输出到 `/img/avatar.svg`，读者无需连接 GitHub 加载图片。
@@ -83,7 +85,7 @@ git push
 - CSS / JS 压缩并生成内容哈希文件名；文章目录、代码复制、图片灯箱只在对应页面加载。
 - Pagefind 搜索索引在打开搜索框时加载，搜索内容保留在浏览器本地。
 - 默认关闭欢迎遮罩和打字动画，首屏直接呈现正文。
-- 文章目录中的 PNG / JPEG 等光栅图片由主题在构建时转 WebP；大图提供响应式尺寸。不要将正文图片放在外部图床来依赖运行时跨域请求。
+- 正文图片使用原文件，不进行有损压缩或缩小；已迁移的图片从 Cloudflare R2 自定义域名加载，原图同时保留在仓库中。
 - 生产构建检查所有站内链接与资源，并检查首页 / 样式的 gzip 体积预算。
 
 GitHub Pages 自行控制 HTTP 缓存头，构建产物中的 `_headers` **只对 Cloudflare Pages 生效**。不能通过该文件改变 GitHub Pages 的缓存策略。
