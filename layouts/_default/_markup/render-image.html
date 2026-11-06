@@ -6,8 +6,6 @@
 {{- $Width := 0 -}}
 {{- $Height := 0 -}}
 {{- $eager := eq .Ordinal 0 -}}
-{{- $srcset := "" -}}
-{{- $sizes := "" -}}
 {{- $displayW := 0 -}}
 {{- with $url.Query.Get "w" -}}{{- $displayW = int . -}}{{- end -}}
 {{- with $url.Query.Get "width" -}}{{- $displayW = int . -}}{{- end -}}
@@ -60,22 +58,11 @@
   {{- end -}}
 
   {{- if $image -}}
-    {{- $rendered := partial "process-image.html" (dict "image" $image) -}}
-    {{- $src = $rendered.RelPermalink -}}
-    {{- $full = $rendered.RelPermalink -}}
-    {{- $Width = $rendered.Width -}}
-    {{- $Height = $rendered.Height -}}
-    {{- $sub := $image.MediaType.SubType -}}
-    {{- if and (ne $sub "gif") (ne $sub "svg+xml") (gt $rendered.Width 850) -}}
-      {{- $mid := partial "process-image.html" (dict "image" $image "op" "resize" "spec" "850x" "q" 80) -}}
-      {{- $srcset = printf "%s %dw, %s %dw" $mid.RelPermalink $mid.Width $rendered.RelPermalink $rendered.Width -}}
-      {{- $src = $mid.RelPermalink -}}
-      {{- if $displayW -}}
-        {{- $sizes = printf "%dpx" $displayW -}}
-      {{- else -}}
-        {{- $sizes = "(max-width: 1040px) calc(100vw - 48px), 992px" -}}
-      {{- end -}}
-    {{- end -}}
+    {{- /* Keep the source bytes and dimensions intact, including for lightbox views. */ -}}
+    {{- $src = $image.RelPermalink -}}
+    {{- $full = $image.RelPermalink -}}
+    {{- $Width = $image.Width -}}
+    {{- $Height = $image.Height -}}
     {{- if and $displayW $Width (gt $Width $displayW) -}}
       {{- $Height = int (math.Round (div (mul (float $Height) (float $displayW)) (float $Width))) -}}
       {{- $Width = $displayW -}}
@@ -102,7 +89,6 @@
 {{- end -}}
 
 <img class="{{ $ImageClass }}" src="{{ $src | safeURL }}"
-	{{ with $srcset }}srcset="{{ . }}" sizes="{{ $sizes }}"{{ end }}
 	{{ with $Width }}width="{{ . }}"{{ end }}
 	{{ with $Height }}height="{{ . }}"{{ end }}
 	{{ with $full }}data-full="{{ . }}"{{ end }}
