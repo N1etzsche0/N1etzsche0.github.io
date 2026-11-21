@@ -27,7 +27,7 @@ try {
   const checkPalette = async theme => {
     const actual = await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, getComputedStyle(document.documentElement).getPropertyValue(key).trim()])), Object.keys(palettes[theme]));
     assert.deepEqual(actual, palettes[theme], `The original Flavor ${theme} palette must be preserved.`);
-    assert.ok(await page.locator('.navbar').evaluate(element => getComputedStyle(element).backgroundImage.includes('linear-gradient')), 'Original navigation gradient is missing.');
+    assert.equal(await page.locator('.navbar').evaluate(element => getComputedStyle(element).backgroundImage), 'none', 'Navigation should use the paper-like theme.');
   };
   await checkPalette('light');
   assert.equal(await page.locator('#nav-links a', { hasText: '标签' }).locator('svg[aria-hidden="true"]').count(), 1, 'Tags should have a decorative icon.');
@@ -52,8 +52,7 @@ try {
   const aboutBytes = await (await page.request.get(new URL(aboutAvatar, url).href)).body();
   assert.deepEqual(Buffer.from(embeddedAvatar, 'base64'), aboutBytes, 'Home and about must use the same avatar.');
   await aboutTab.close();
-  await page.evaluate(() => document.fonts.ready);
-  assert.ok(await page.evaluate(() => document.fonts.check('16px "Chillax Variable"')), 'Local navigation font failed to load.');
+  assert.ok(await page.locator('.navbar').evaluate(element => getComputedStyle(element).fontFamily.includes('PingFang SC')), 'Navigation should use the site font stack.');
   await mkdir('.artifacts', { recursive: true });
   const label = basePath === '/' ? 'root' : 'subpath';
   await page.screenshot({ path: `.artifacts/${label}-desktop.png`, fullPage: true });

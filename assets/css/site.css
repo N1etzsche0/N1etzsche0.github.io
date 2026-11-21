@@ -1,4 +1,4 @@
-/* Keep Flavor's original palette and navigation gradient in the theme submodule. */
+/* AstroPaper-inspired presentation, with the existing reading tools retained. */
 html { scroll-padding-top: 94px; scrollbar-gutter: stable; }
 body { -webkit-font-smoothing: antialiased; }
 body.search-open { overflow: hidden; }
@@ -229,4 +229,58 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* A quiet paper-like canvas and a compact editorial home page. */
+:root { --font-sans: "PingFang SC", -apple-system, BlinkMacSystemFont, "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+.navbar, [data-theme="dark"] .navbar {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  border-bottom: 1px solid var(--divider);
+  box-shadow: none;
+}
+.navbar .navbar__links > li > a:hover,
+.navbar .navbar__links > li > a.active { background: transparent; }
+.navbar .navbar__links > li > a.active span { text-decoration: underline; text-underline-offset: 0.45em; text-decoration-thickness: 2px; }
+.home-page { max-width: 850px; }
+.hero {
+  margin: 46px 0 30px;
+  padding: 8px 0 30px;
+  border: 0;
+  border-bottom: 1px solid var(--divider);
+  border-radius: 0;
+  background: transparent;
+}
+.hero__row { align-items: flex-start; gap: 20px; }
+.hero__avatar { width: 64px; height: 64px; margin-top: 3px; border: 0; box-shadow: none; }
+.hero__title { margin: 0; font-size: 2.25rem; font-weight: 700; letter-spacing: 0; }
+.hero__bio { margin: 12px 0 0; font-size: 1rem; }
+.hero__typewriter { margin: 4px 0 12px; font-size: 0.9375rem; }
+.hero__social { gap: 4px; margin-left: -8px; }
+.hero__social a { border: 0; border-radius: 6px; background: transparent; color: var(--text); }
+.hero__social a:hover { color: var(--link); background: var(--hover-lift); }
+.hero__social a svg { width: 20px; height: 20px; }
+.section-heading { border: 0; padding: 0; }
+.section-label { font-size: 1.4rem; font-weight: 700; letter-spacing: 0; }
+.text-link { color: var(--link); font-size: 0.9375rem; }
+.post-list__item { padding: 24px 0 10px; border: 0; }
+.post-list__title { color: var(--link); font-size: 1.25rem; font-weight: 700; line-height: 1.5; }
+.post-list__meta { margin: 6px 0 0; gap: 8px; }
+.post-list__date { font-size: 0.875rem; }
+.post-list__tags { gap: 5px; }
+.post-list__tag { padding: 0; background: transparent; color: var(--meta); font-size: 0.8125rem; }
+.post-list__tag::before { content: "· "; }
+.post-list__desc { margin-top: 5px; color: var(--text); font-size: 0.9375rem; line-height: 1.7; }
+.post-single__header { border-bottom: 1px solid var(--divider); }
+.article-content > h2 { border-bottom-color: var(--divider); }
+@media (max-width: 768px) {
+  .hero { margin: 28px 0 28px; padding: 0 0 24px; border-radius: 0; }
+  .hero__row { gap: 16px; }
+  .hero__avatar { width: 56px; height: 56px; margin-top: 3px; }
+  .hero__title { font-size: 2rem; }
+  .hero__bio { font-size: 0.9375rem; }
+  .hero__typewriter { margin: 4px 0 10px; }
+  .section-label { font-size: 1.25rem; }
+  .post-list__item { padding: 22px 0 8px; }
+  .post-list__title { font-size: 1.125rem; }
 }
